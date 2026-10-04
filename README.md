@@ -2,12 +2,12 @@
 
 ## Серия статей
 
-* [iOS CarPlay｜Совместимость с UIScene](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay｜兼容%20UIScene)
-* [iOS CarPlay｜Добавляем поддержку CarPlay в аудио-приложение](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9C%E8%AE%A9%E4%BD%A0%E7%9A%84%E9%9F%B3%E9%A2%91%20App%20%E6%94%AF%E6%8C%81%20CarPlay.md)
-* [iOS CarPlay｜Часто задаваемые вопросы](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9C%E8%AE%A9%E4%BD%A0%E7%9A%84%E9%9F%B3%E9%A2%91%20App%20%E6%94%AF%E6%8C%81%20CarPlay.md)
-* [iOS CarPlay｜Заметки по WWDC](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9CWWDC%20%E7%AC%94%E8%AE%B0.md)
-* iOS CarPlay｜Разработка с использованием MediaPlayer framework
-* [iOS CarPlay｜WWDC22 10016 - Расширьте возможности своего приложения с помощью CarPlay](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay｜WWDC22%2010016%20-%20通过%20CarPlay%20让你的%20App%20发挥更大的作用.md)
+* [iOS CarPlay｜Совместимость с UIScene](iOS%20CarPlay｜兼容%20UIScene.md)
+* [iOS CarPlay｜Добавляем поддержку CarPlay в аудио-приложение](iOS%20CarPlay｜让你的音频%20App%20支持%20CarPlay.md)
+* [iOS CarPlay｜Часто задаваемые вопросы](iOS%20CarPlay｜常见问题解答.md)
+* [iOS CarPlay｜Заметки по WWDC](iOS%20CarPlay｜WWDC%20笔记.md)
+* [iOS CarPlay｜Разработка с использованием MediaPlayer framework](iOS%20CarPlay｜使用%20MediaPlayer%20framework%20开发.md)
+* [iOS CarPlay｜WWDC22 10016 - Расширьте возможности своего приложения с помощью CarPlay](iOS%20CarPlay｜WWDC22%2010016%20-%20通过%20CarPlay%20让你的%20App%20发挥更大的作用.md)
 
 ## Предисловие
 

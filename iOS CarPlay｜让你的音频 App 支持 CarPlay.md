@@ -123,7 +123,7 @@ interfaceController.setRootTemplate(tabBarTemplate, animated: true)
 
 Обратите внимание: количество templates в CPTabBarTemplate ограничено. Максимум можно получить через свойство класса [maximumTabCount](https://developer.apple.com/documentation/carplay/cptabbartemplate/3589351-maximumtabcount/); его значение зависит от entitlements, добавленных в Entitlements.plist. Для аудио-приложения можно добавить не более 4 вкладок, при превышении произойдёт crash.
 
-> В [WWDC17 - Поддержка CarPlay в вашем приложении](https://github.com/teney97/iOS-CarPlay/blob/main/Content/WWDC17%20-%20%E8%AE%A9%E6%82%A8%E7%9A%84%20App%20%E6%94%AF%E6%8C%81%20CarPlay%20%E8%BD%A6%E8%BD%BD.md) Apple упоминала, что при построении CarPlay-приложения на MediaPlayer framework рекомендуется использовать не более 4 вкладок с короткими заголовками: места мало, а у некоторых автомобилей узкие экраны. Кроме того, во время воспроизведения аудио в правом верхнем углу rootTemplate нужно показывать кнопку «Сейчас играет».
+> В [WWDC17 - Поддержка CarPlay в вашем приложении](Content/WWDC17%20-%20让你的%20App%20支持%20CarPlay%20车载.md) Apple упоминала, что при построении CarPlay-приложения на MediaPlayer framework рекомендуется использовать не более 4 вкладок с короткими заголовками: места мало, а у некоторых автомобилей узкие экраны. Кроме того, во время воспроизведения аудио в правом верхнем углу rootTemplate нужно показывать кнопку «Сейчас играет».
 
 ```swift
 /**
