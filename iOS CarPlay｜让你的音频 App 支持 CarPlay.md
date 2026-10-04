@@ -1,22 +1,22 @@
-## iOS CarPlay｜让你的音频 App 支持 CarPlay
+## iOS CarPlay｜Поддержка CarPlay в вашем аудио-приложении
 
-从 iOS 14 开始，你可以使用 CarPlay framework 来开发音频 CarPlay App（如果是导航类 App，在 iOS 12 就可以使用），它提供了一些 UI 模版来支持开发者自定义界面；如果你要兼容 iOS 13 及更早版本的话需要使用 MediaPlayer framework 开发，它向前兼容。因此，如果你的 App 需要在 iOS 14 及更高版本上使用 CarPlay framework，并且兼容 iOS 13 及更早版本的话，就要维护两套代码，开发工作量可能接近 double。笔者仅支持了 iOS 14 及更高版本，在本章节中会详细讲解使用 CarPlay framework 的开发细节。如果你想支持低版本的话也可以看看笔者对「WWDC17 - 让您的 App 支持 CarPlay 车载」和「WWDC18 - CarPlay 车载音频和导航 App」做的笔记。
+Начиная с iOS 14 для разработки аудио-приложений CarPlay можно использовать CarPlay framework (для навигационных приложений он доступен ещё с iOS 12). Он предоставляет набор UI-шаблонов, которые разработчик может настраивать. Если нужна совместимость с iOS 13 и более ранними версиями, придётся использовать MediaPlayer framework, который работает и на старых системах. Поэтому, если вашему приложению нужен CarPlay framework на iOS 14 и выше и при этом нужна поддержка iOS 13 и ниже, придётся поддерживать две кодовые базы, и объём работы может вырасти почти вдвое. Автор поддержал только iOS 14 и выше, поэтому в этой главе подробно разбираются нюансы разработки с CarPlay framework. Если вам нужна поддержка старых версий, посмотрите также конспекты автора по «WWDC17 - Поддержка CarPlay в вашем приложении» и «WWDC18 - Аудио- и навигационные приложения CarPlay».
 
-### 申请权限并配置工程
+### Запрос разрешения и настройка проекта
 
-首先，需要确定你的 App 是否适用于 CarPlay，然后去开发者网站申请对应 App 类型的 CarPlay 权限，并对工程进行配置。只有这样你的工程才能使用 CarPlay Simulator，否则你的 CarPlay Simulator 无法打开（灰显禁用）。不过笔者注意到，只要你的 CarPlay Simulator 启用过，即便是不支持 CarPlay 的 App 也是可以打开 CarPlay Simulator 的。因此你可以跑一遍 Apple 的 CarPlay 示例 App [CarPlay Music App](https://developer.apple.com/documentation/carplay/integrating_carplay_with_your_music_app?language=objc) 来启用 CarPlay Simulator。
+Сначала нужно определить, подходит ли ваше приложение для CarPlay, затем запросить на сайте для разработчиков разрешение CarPlay для соответствующего типа приложения и настроить проект. Только в этом случае ваш проект сможет использовать CarPlay Simulator, иначе он не откроется (пункт будет серым и недоступным). Впрочем, автор заметил, что если CarPlay Simulator уже когда-то был включён, его можно открыть даже для приложения без поддержки CarPlay. Поэтому можно запустить пример от Apple [CarPlay Music App](https://developer.apple.com/documentation/carplay/integrating_carplay_with_your_music_app?language=objc), чтобы активировать CarPlay Simulator.
 
-不过，要使用 CarPlay Simulator 运行和调试你的 CarPlay App，还是得你自己的工程支持才行。
+Но чтобы запускать и отлаживать ваше CarPlay-приложение в CarPlay Simulator, всё равно нужно, чтобы ваш собственный проект поддерживал CarPlay.
 
-因此，如果你计划要开发 CarPlay App 的话，最好提前去申请权限，因为 Apple 审核还要时间。在此期间可以看看相关开发文档，等权限申请下来并配置好工程就可以使用 CarPlay Simulator 调试开发啦。
+Поэтому, если вы планируете разрабатывать CarPlay-приложение, лучше запросить разрешение заранее: проверка в Apple занимает время. Пока ждёте, можно изучить документацию, а когда разрешение будет получено и проект настроен, можно отлаживать приложение в CarPlay Simulator.
 
-参考文档：[申请 CarPlay 权限](https://developer.apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
+Документация: [Запрос entitlements для CarPlay](https://developer.apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
 
-### 使用 CarPlay Simulator 运行和调试 CarPlay App
+### Запуск и отладка CarPlay-приложения в CarPlay Simulator
 
-每个 iPhone Simulator 都附带一个 CarPlay Simulator，在 **I/O > External Displays > CarPlay** 打开。默认的标准的 CarPlay Simulator 窗口大小和比例为 `800 x 480, @2x`。
+К каждому iPhone Simulator прилагается CarPlay Simulator, который открывается через **I/O > External Displays > CarPlay**. Размер и масштаб окна стандартного CarPlay Simulator по умолчанию: `800 x 480, @2x`.
 
-如果是导航类 App，Apple 建议开启 CarPlay Simulator 的附加选项，在终端输入以下命令。这允许你每次启动 CarPlay Simulator 前都可以设置窗口大小和比例，用来测试确保你的地图内容适配了所有推荐的配置。这仅支持导航类 App ，音频类 App 改变窗口大小后显示效果不尽如人意，不建议开启。
+Для навигационных приложений Apple рекомендует включить дополнительные опции CarPlay Simulator, выполнив в терминале следующую команду. Это позволит перед каждым запуском CarPlay Simulator задавать размер и масштаб окна, чтобы убедиться, что содержимое карты корректно отображается во всех рекомендуемых конфигурациях. Это поддерживается только для навигационных приложений; у аудио-приложений при изменении размера окна отображение получается неудовлетворительным, поэтому включать опцию не рекомендуется.
 
 ```
 defaults write com.apple.iphonesimulator CarPlayExtraOptions -bool YES
@@ -24,20 +24,20 @@ defaults write com.apple.iphonesimulator CarPlayExtraOptions -bool YES
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2d693e45a0ca4c1598fa3b71e5706e45~tplv-k3u1fbpfcp-watermark.image?)
 
-如果你打开了 CarPlay Simulator 却没有在主屏幕上看到你的 App，那么你可能是忘了添加对应的权利。你需要将 Key `com.apple.developer.carplay-audio` 添加到 Entitlements.plist 中并设置 Value 为 1。
+Если вы открыли CarPlay Simulator, но не видите своё приложение на главном экране, возможно, вы забыли добавить соответствующий entitlement. Нужно добавить в Entitlements.plist ключ `com.apple.developer.carplay-audio` со значением 1.
 
 ```xml
 <key>com.apple.developer.carplay-audio</key>
 <true/>
 ```
 
-参考文档：[使用 CarPlay Simulator 运行和调试 CarPlay App](https://developer.apple.com/documentation/carplay/using_the_carplay_simulator?language=objc)
+Документация: [Запуск и отладка CarPlay-приложения в CarPlay Simulator](https://developer.apple.com/documentation/carplay/using_the_carplay_simulator?language=objc)
 
-如果你是 M1 Mac，那可能无法使用 CarPlay Simulator。如果你的 Xcode 以 Rosetta 模式运行，那么启动 CarPlay App 会直接 crash。将 Simulator 也以 Rosetta 运行并不能解决问题。这个问题暂时没有解决方案。https://issueexplorer.com/issue/mapbox/mapbox-navigation-ios/3355。
+На Mac с чипом M1 CarPlay Simulator может не работать. Если Xcode запущен в режиме Rosetta, запуск CarPlay-приложения приводит к crash. Запуск Simulator тоже через Rosetta проблему не решает. Решения этой проблемы пока нет. https://issueexplorer.com/issue/mapbox/mapbox-navigation-ios/3355。
 
-### 声明一个 CarPlay scene
+### Объявление CarPlay scene
 
-在 Info.plist 中声明一个 scene。
+Объявите scene в Info.plist.
 
 ```xml
 <key>UIApplicationSceneManifest</key>
@@ -61,7 +61,7 @@ defaults write com.apple.iphonesimulator CarPlayExtraOptions -bool YES
 </dict>
 ```
 
-### 实现 CarPlaySceneDelegate
+### Реализация CarPlaySceneDelegate
 
 ```swift
 import CarPlay
@@ -86,33 +86,33 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 }
 ```
 
-CPTemplateApplicationSceneDelegate 协议定义了 CarPlay 在场景连接、断开连接、以及响应某些用户操作的方法。你需要在 CarPlay 启动你的 App 并连接其场景时创建和设置根模板。一般我们实现以下两个方法：
+Протокол CPTemplateApplicationSceneDelegate определяет методы, которые вызываются при подключении и отключении сцены CarPlay, а также при некоторых действиях пользователя. Корневой шаблон нужно создать и установить в тот момент, когда CarPlay запускает ваше приложение и подключает его сцену. Обычно реализуют два следующих метода:
 
 * [- templateApplicationScene:didConnectInterfaceController:](https://developer.apple.com/documentation/carplay/cptemplateapplicationscenedelegate/3578119-templateapplicationscene?language=objc)
 
-  通知代理 CarPlay Scene 已连接。当 App 在车机屏幕上启动时，CarPlay framework 将调用此方法，在该方法中对模板进行初始化。可以看到，系统自动创建了 [CPInterfaceController](https://developer.apple.com/documentation/carplay/cpinterfacecontroller/) 实例（类似 UINavigationController），作为我们 CarPlay App 的入口 controller，我们只需在回调中持有这个实例即可。在以上示例代码中，我们创建了一个列表模板 CPListTemplate（类似 UITableView），其接收多组 CPListSection，section 中包含多个 CPListItem（类似 UITableViewCell）。最后，我们将 CPListTemplate 设置为 App 的根模板（类似 rootViewController）。
+  Уведомляет делегат о том, что CarPlay Scene подключена. Когда приложение запускается на экране автомобиля, CarPlay framework вызывает этот метод, и в нём выполняется инициализация шаблонов. Как видно, система автоматически создаёт экземпляр [CPInterfaceController](https://developer.apple.com/documentation/carplay/cpinterfacecontroller/) (аналог UINavigationController), который служит входным контроллером нашего CarPlay-приложения; нам достаточно сохранить этот экземпляр в колбэке. В примере выше мы создаём списочный шаблон CPListTemplate (аналог UITableView), который принимает несколько CPListSection, а каждая секция содержит несколько CPListItem (аналог UITableViewCell). Наконец, мы устанавливаем CPListTemplate корневым шаблоном приложения (аналог rootViewController).
 
 * [- templateApplicationScene:didDisconnectInterfaceController:](https://developer.apple.com/documentation/carplay/cptemplateapplicationscenedelegate/3578120-templateapplicationscene?language=objc)
 
-  通知代理 CarPlay Scene 已断开连接。当车机断开连接时，该方法将被调用，可以做一些清理工作。
+  Уведомляет делегат о том, что CarPlay Scene отключена. Метод вызывается при отключении от автомобиля, в нём можно выполнить очистку.
 
-参考文档：[在你的 CarPlay App 中显示内容](https://developer.apple.com/documentation/carplay/displaying_content_in_carplay?language=objc)
+Документация: [Отображение контента в вашем CarPlay-приложении](https://developer.apple.com/documentation/carplay/displaying_content_in_carplay?language=objc)
 
-### CarPlay 界面搭建
+### Построение интерфейса CarPlay
 
-CarPlay App 界面基本就是由 Template 和 Item 组成，而音频类的 CarPlay App 基本上使用 CPTabBarTemplate、CPListTemplate、CPListImageRowItem、CPListItem 等等即可完成界面的搭建。
+Интерфейс CarPlay-приложения по сути состоит из Template и Item, а для аудио-приложений CarPlay обычно достаточно CPTabBarTemplate, CPListTemplate, CPListImageRowItem, CPListItem и т. п.
 
 | Templates                                                    | Description                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [CPListTemplate](https://developer.apple.com/documentation/carplay/cplisttemplate?language=objc)<br />- [CPListItem](https://developer.apple.com/documentation/carplay/cplistitem?language=objc)<br />- [CPListImageRowItem](https://developer.apple.com/documentation/carplay/cplistimagerowitem?language=objc)<br />- [CPMessageListItem](https://developer.apple.com/documentation/carplay/cpmessagelistitem?language=objc) | 列表模版（类似 UITableView）<br />- 一个通用的、可选择的列表项（对应下图第 2 个）<br />- 显示一系列图像的列表项（对应下图第 3 个）<br />- 表示对话或联系人的列表项（用于通信类 App）（对应下图第 1 个） |
-| [CPGridTemplate](https://developer.apple.com/documentation/carplay/cpgridtemplate?language=objc) | 显示和管理 items 网格的模版                                  |
-| [CPTabBarTemplate](https://developer.apple.com/documentation/carplay/cptabbartemplate?language=objc) | TabBar 模版（类似 UITabBarController）                       |
+| [CPListTemplate](https://developer.apple.com/documentation/carplay/cplisttemplate?language=objc)<br />- [CPListItem](https://developer.apple.com/documentation/carplay/cplistitem?language=objc)<br />- [CPListImageRowItem](https://developer.apple.com/documentation/carplay/cplistimagerowitem?language=objc)<br />- [CPMessageListItem](https://developer.apple.com/documentation/carplay/cpmessagelistitem?language=objc) | Шаблон списка (аналог UITableView)<br />- Универсальный выбираемый элемент списка (на рисунке ниже — второй)<br />- Элемент списка, отображающий набор изображений (на рисунке ниже — третий)<br />- Элемент списка, представляющий беседу или контакт (для приложений связи) (на рисунке ниже — первый) |
+| [CPGridTemplate](https://developer.apple.com/documentation/carplay/cpgridtemplate?language=objc) | Шаблон для отображения и управления сеткой элементов         |
+| [CPTabBarTemplate](https://developer.apple.com/documentation/carplay/cptabbartemplate?language=objc) | Шаблон TabBar (аналог UITabBarController)                    |
 
 ![](https://docs-assets.developer.apple.com/published/49959584ba/rendered2x-1619630673.png)
 
 #### CPTabBarTemplate
 
-TabBar 模版，类似 UIKit 中的 UITabBarController。使用一组 CPTemplate 进行初始化，可以将其作为 interfaceController 的 rootTemplate。
+Шаблон TabBar, аналог UITabBarController в UIKit. Инициализируется набором CPTemplate и может быть установлен как rootTemplate у interfaceController.
 
 ```swift
 let tabBarTemplate = CPTabBarTemplate(templates: templates)
@@ -121,9 +121,9 @@ interfaceController.setRootTemplate(tabBarTemplate, animated: true)
 
 ![](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/90920a58c3264fb98908516fffb09449~tplv-k3u1fbpfcp-watermark.image?)
 
-需要注意一下，CPTabBarTemplate 的 templates 是有个数限制的，最大数量通过 [maximumTabCount](https://developer.apple.com/documentation/carplay/cptabbartemplate/3589351-maximumtabcount/) 类属性获取，它的值取决于在 Entitlements.plist 中添加的权利，音频 App 最多添加 4 个，超过数量会 crash。
+Обратите внимание: количество templates в CPTabBarTemplate ограничено. Максимум можно получить через свойство класса [maximumTabCount](https://developer.apple.com/documentation/carplay/cptabbartemplate/3589351-maximumtabcount/); его значение зависит от entitlements, добавленных в Entitlements.plist. Для аудио-приложения можно добавить не более 4 вкладок, при превышении произойдёт crash.
 
-> 在 [WWDC17 - 让你的 App 支持 CarPlay 车载](https://github.com/teney97/iOS-CarPlay/blob/main/Content/WWDC17%20-%20%E8%AE%A9%E6%82%A8%E7%9A%84%20App%20%E6%94%AF%E6%8C%81%20CarPlay%20%E8%BD%A6%E8%BD%BD.md) 中 Apple 提到过使用 MediaPlayer framework 来构建的 CarPlay App 时，推荐使用最多 4 个 tabs 并且使用较短的标题，因为空间有限并且有些汽车的屏幕比较窄，而且有音频正在播放的时候还需在 rootTemplate 右上角显示 “正在播放” 按钮。
+> В [WWDC17 - Поддержка CarPlay в вашем приложении](https://github.com/teney97/iOS-CarPlay/blob/main/Content/WWDC17%20-%20%E8%AE%A9%E6%82%A8%E7%9A%84%20App%20%E6%94%AF%E6%8C%81%20CarPlay%20%E8%BD%A6%E8%BD%BD.md) Apple упоминала, что при построении CarPlay-приложения на MediaPlayer framework рекомендуется использовать не более 4 вкладок с короткими заголовками: места мало, а у некоторых автомобилей узкие экраны. Кроме того, во время воспроизведения аудио в правом верхнем углу rootTemplate нужно показывать кнопку «Сейчас играет».
 
 ```swift
 /**
@@ -136,21 +136,21 @@ interfaceController.setRootTemplate(tabBarTemplate, animated: true)
 open class var maximumTabCount: Int { get }
 ```
 
-可以设置每个 template 的 tab 的 tabTitle 和 tabImage，也可以设置 tabSystemItem 用系统样式（可用样式较少，且没办法自定义文案）。如果你没有设置 tabSystemItem 并且 tabImage 为 nil 的话，那么该 tabBarItem 将会使用 UITabBarItem.SystemItem.more。
+У каждого template можно задать для вкладки tabTitle и tabImage, а также tabSystemItem, чтобы использовать системный стиль (доступных стилей немного, и текст изменить нельзя). Если tabSystemItem не задан, а tabImage равен nil, то для этого tabBarItem будет использован UITabBarItem.SystemItem.more.
 
 ```swift
-// 自定义 tab 样式
+// Пользовательский стиль tab
 listTemplate.tabTitle = "推荐"
 listTemplate.tabImage = UIImage(named: "tabbar_recommend")
-// 使用系统 tab 样式，如果同时设置了 tabTitle 和 tabImage，那么 tabSystemItem 将不生效
+// Системный стиль tab; если одновременно заданы tabTitle и tabImage, tabSystemItem не применяется
 listTemplate.tabSystemItem = .favorites
-// 显示红点
+// Показать красную точку
 listTemplate.showsTabBadge = true
 ```
 
-这时候就要找 UI 出图了，参考文档：[CarPlay UI 设计指南](https://developer.apple.com/design/human-interface-guidelines/carplay/icons-and-images/custom-icons/)。
+Здесь придётся идти к UI-дизайнеру за иконками. Документация: [Руководство по UI-дизайну CarPlay](https://developer.apple.com/design/human-interface-guidelines/carplay/icons-and-images/custom-icons/).
 
-CPTabBarTemplate 有个遵循 [CPTabBarTemplateDelegate](https://developer.apple.com/documentation/carplay/cptabbartemplatedelegate/) 协议的 delegate 属性，CPTabBarTemplateDelegate 就一个方法：
+У CPTabBarTemplate есть свойство delegate, реализующее протокол [CPTabBarTemplateDelegate](https://developer.apple.com/documentation/carplay/cptabbartemplatedelegate/). В CPTabBarTemplateDelegate всего один метод:
 
 ```swift
 public protocol CPTabBarTemplateDelegate : NSObjectProtocol {
@@ -158,20 +158,20 @@ public protocol CPTabBarTemplateDelegate : NSObjectProtocol {
 }
 ```
 
-你可以在该方法中刷新 selectedTemplate 数据，如果需要的话。
+В этом методе при необходимости можно обновить данные selectedTemplate.
 
-需要注意一点，与 UITabBarController 的 `- tabBarController:didSelectViewController:` 不同的是：
+Обратите внимание, что в отличие от `- tabBarController:didSelectViewController:` у UITabBarController:
 
-* 在 CPTabBarTemplate 呈现并默认选中第一个 tab 时，就会调用该代理方法一次，因此你需要注意在该代理方法实现中是否需要过滤掉第一次调用
-* 点击当前选中的 tab 也会调用代理方法，因此你也需要注意下是否过滤这一情况
+* Когда CPTabBarTemplate отображается и по умолчанию выбирается первая вкладка, этот метод делегата вызывается один раз, поэтому в его реализации нужно учитывать, не требуется ли отфильтровать первый вызов
+* Нажатие на уже выбранную вкладку тоже вызывает метод делегата, поэтому этот случай также стоит учесть и при необходимости отфильтровать
 
 #### CPListTemplate
 
-列表模版，类似 UITableview。可以使用一组 CPListTemplate 来初始化 CPTabBarTemplate。CPListTemplate 由遵循 [CPListTemplateItem](https://developer.apple.com/documentation/carplay/cplisttemplateitem/) 协议的 item 组成，item 类似 UITableviewCell。一般音频 App 就使用 CPListItem 和 CPListImageRowItem。
+Шаблон списка, аналог UITableview. Набором CPListTemplate можно инициализировать CPTabBarTemplate. CPListTemplate состоит из элементов, реализующих протокол [CPListTemplateItem](https://developer.apple.com/documentation/carplay/cplisttemplateitem/); элемент аналогичен UITableviewCell. В аудио-приложениях обычно используют CPListItem и CPListImageRowItem.
 
 ![](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c284c0486f8947dd82d8334b1b6c10b0~tplv-k3u1fbpfcp-watermark.image?)
 
-CPListTemplate 有个遵循 [CPListTemplateDelegate](https://developer.apple.com/documentation/carplay/cplisttemplatedelegate/) 协议的 delegate 属性，CPListTemplateDelegate 就一个方法，在用户点击 item 时触发，我们可以在该方法实现中 push 其它 Template。
+У CPListTemplate есть свойство delegate, реализующее протокол [CPListTemplateDelegate](https://developer.apple.com/documentation/carplay/cplisttemplatedelegate/). В CPListTemplateDelegate всего один метод, он срабатывает при нажатии пользователем на элемент, и в его реализации можно выполнить push других Template.
 
 ```swift
 @available(iOS, introduced: 12.0, deprecated: 14.0)
@@ -180,9 +180,9 @@ protocol CPListTemplateDelegate : NSObjectProtocol {
 }
 ```
 
-注意这里有个 completionHandler 参数。当 `- listTemplate:didSelectListItem:completionHandler:` 方法被调用，在 completionHandler 调用之前，didSelectListItem 上会在右边显示一个 loading 活动指示器。最佳实践是，在要播放的内容已经准备好，或者页面跳转完成时（`- pushTemplate:animated:completion:` 的 completion 中）调用。当然，你也要保证 completionHandler 被调用，比如提前退出时，否则活动指示器会一直存在。
+Обратите внимание на параметр completionHandler. Когда вызывается метод `- listTemplate:didSelectListItem:completionHandler:`, то до вызова completionHandler справа на didSelectListItem показывается индикатор загрузки. Лучшая практика: вызывать его, когда контент для воспроизведения готов или когда переход на страницу завершён (в completion метода `- pushTemplate:animated:completion:`). Также нужно гарантировать, что completionHandler будет вызван в любом случае, например при раннем выходе, иначе индикатор активности останется навсегда.
 
-> `CPListTemplateDelegate` 在 iOS 14 中已经被标记为弃用，建议使用 [CPSelectableListItem](https://developer.apple.com/documentation/carplay/cpselectablelistitem?language=objc) 协议的 `handler` 属性来处理 action，它是一个可选的 action block。CPListItem、CPListImageRowItem 等都遵循 `CPSelectableListItem` 协议。
+> `CPListTemplateDelegate` в iOS 14 помечен как устаревший (deprecated); для обработки действий рекомендуется использовать свойство `handler` протокола [CPSelectableListItem](https://developer.apple.com/documentation/carplay/cpselectablelistitem?language=objc) — необязательный блок действия. Протокол `CPSelectableListItem` реализуют CPListItem, CPListImageRowItem и другие.
 >
 > ```swift
 > /**
@@ -201,25 +201,25 @@ protocol CPListTemplateDelegate : NSObjectProtocol {
 
 #### CPListImageRowItem
 
-可以用来展示由一组专辑组成的模块。使用文本和一组图片初始化，文本可以展示模块名称，图片可以展示模块里前 n 个专辑的封面。
+Можно использовать для отображения блока, состоящего из набора альбомов. Инициализируется текстом и набором изображений: текст может показывать название блока, а изображения — обложки первых n альбомов блока.
 
 ```swift
-let imagesCount = CPMaximumNumberOfGridImages // 取决于汽车显示屏的可用宽度
+let imagesCount = CPMaximumNumberOfGridImages // зависит от доступной ширины экрана автомобиля
 let images = Array(repeating: image, count: imagesCount)
 let listImageRowItem = CPListImageRowItem(text: text, images: images)
 ```
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0c4ef7bb3d374843b3daf25ae649fb4f~tplv-k3u1fbpfcp-watermark.image?)
 
-CPListImageRowItem 的点击区域可以分为每张图片区域、图片以外的所有区域。
+Область нажатия CPListImageRowItem делится на область каждого изображения и всю остальную область, кроме изображений.
 
-每张图片的 action 通过设置 CPListImageRowItem 实例的 listImageRowHandler 属性来处理。点击可以 push 到该专辑的音频列表页面。
+Действие для каждого изображения обрабатывается через свойство listImageRowHandler экземпляра CPListImageRowItem. По нажатию можно выполнить push на страницу со списком аудио этого альбома.
 
 ```swift
 var listImageRowHandler: ((CPListImageRowItem, Int, @escaping () -> Void) -> Void)? // The image row item that the user selected.
 ```
 
-图片以外的区域的 action 通过设置 CPListImageRowItem 实例的 handler 属性来处理。点击可以 push 到该模块的专辑列表页面。
+Действие для области вне изображений обрабатывается через свойство handler экземпляра CPListImageRowItem. По нажатию можно выполнить push на страницу со списком альбомов этого блока.
 
 ```swift
 var handler: ((CPSelectableListItem, @escaping () -> Void) -> Void)?
@@ -227,9 +227,9 @@ var handler: ((CPSelectableListItem, @escaping () -> Void) -> Void)?
 
 #### CPListItem
 
-可以用来展示专辑或音频，或者其它的 item 如 “正在加载中”、“还没有播放记录”、”播放全部“ 等等。
+Можно использовать для отображения альбома или аудио, а также других элементов, например «Загрузка...», «Истории воспроизведения пока нет», «Воспроизвести всё» и т. п.
 
-对于音频 item，一般由音频封面、音频名称、音频描述组成，可以使用以下构造器初始化 CPListItem。
+Элемент аудио обычно состоит из обложки, названия и описания аудио; для инициализации CPListItem можно использовать следующий конструктор.
 
 ```swift
 let listItem = CPListItem(text: audioName, 
@@ -239,7 +239,7 @@ let listItem = CPListItem(text: audioName,
 
 ![](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/125d842edab74a5d97cddbe2edbd2357~tplv-k3u1fbpfcp-watermark.image?)
 
-对于专辑 item，还需要右边的导航箭头来和音频 item 做区分，指示用户点击可以打开音频列表页面，可以使用以下构造器初始化 CPListItem。
+Элементу альбома, чтобы отличать его от элемента аудио, нужна ещё стрелка навигации справа, показывающая, что нажатие откроет страницу со списком аудио. Для инициализации CPListItem можно использовать следующий конструктор.
 
 ```swift
 let listItem = CPListItem(text: albumName, 
@@ -249,7 +249,7 @@ let listItem = CPListItem(text: albumName,
                           accessoryType: .disclosureIndicator)
 ```
 
-右边的图标有两个系统样式（箭头、云朵），同时也支持自定义。
+Для иконки справа есть два системных стиля (стрелка, облако), также поддерживается пользовательская иконка.
 
 ```swift
 enum CPListItemAccessoryType : Int {
@@ -261,17 +261,17 @@ enum CPListItemAccessoryType : Int {
 
 ![](https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1d384991a82f4deba5f3fe53d9fc2f56~tplv-k3u1fbpfcp-watermark.image?)
 
-需要注意一点，如果 CPListItem 的 detailText 为 nil 的话，view 高度会减小，并将 text 居中显示，如下图所示，这会影响美观以及整体统一性。因此，你可以考虑当音频没有副标题时，使用音频时长或其它数据填充 detailText。
+Обратите внимание: если detailText у CPListItem равен nil, высота view уменьшается, а text выравнивается по центру (см. рисунок ниже), что портит внешний вид и единообразие. Поэтому, если у аудио нет подзаголовка, можно заполнять detailText длительностью аудио или другими данными.
 
 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0aaab77e2bc146649b32fe54b06b4c2b~tplv-k3u1fbpfcp-watermark.image?)
 
 #### CPNowPlayingTemplate
 
-音频播放页是音频类 CarPlay App 最重要的页面了，使用 [CPNowPlayingTemplate](https://developer.apple.com/documentation/carplay/cpnowplayingtemplate/)，它是一个单例。
+Экран воспроизведения — самая важная страница аудио-приложения CarPlay. Для него используется [CPNowPlayingTemplate](https://developer.apple.com/documentation/carplay/cpnowplayingtemplate/), это синглтон.
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/95c7eb8bdac4467396a7c9dce25a11a8~tplv-k3u1fbpfcp-watermark.image?)
 
-你可以根据自己的需求配置 CPNowPlayingTemplate，比如添加控制按钮。你可以使用 CarPlay framework 提供的一些系统按钮，也可以自定义按钮。需要注意的是，你要在 `- templateApplicationScene:didConnectInterfaceController:` 的时机就配置好 CPNowPlayingTemplate，而不应该在 push 到 CPNowPlayingTemplate 的时候才去配置，因为 CPNowPlayingTemplate 并不一定是通过主动 push 时触发，还可能是通过 “播放中” App 或者 rootTemplate 右上角的 “正在播放按钮”。
+CPNowPlayingTemplate можно настроить под свои нужды, например добавить кнопки управления. Можно использовать системные кнопки, предоставляемые CarPlay framework, или создать собственные. Обратите внимание: CPNowPlayingTemplate нужно настроить уже в момент `- templateApplicationScene:didConnectInterfaceController:`, а не в момент push на CPNowPlayingTemplate, потому что переход на CPNowPlayingTemplate не обязательно происходит через явный push: он может быть вызван и через приложение «Сейчас играет», и через кнопку «Сейчас играет» в правом верхнем углу rootTemplate.
 
 ```swift
 let nowPlayingTemplate = CPNowPlayingTemplate.shared
@@ -280,14 +280,14 @@ let playbackRateButton = CPNowPlayingPlaybackRateButton() { ... }
 nowPlayingTemplate.updateNowPlayingButtons([repeatButton, playbackRateButton])
 ```
 
-无论你是使用 CarPlay framework 还是 MediaPlayer framework 来构建的 CarPlay App，都是通过 [MPNowPlayingInfoCenter](https://developer.apple.com/documentation/mediaplayer/mpnowplayinginfocenter/) 和 [MPRemoteCommandCenter](https://developer.apple.com/documentation/mediaplayer/mpremotecommandcenter/) 来提供播放界面的音频信息以及响应远程播放控制事件。只不过在 CarPlay framework 中，一些远程控制事件通过 [CPNowPlayingButton](https://developer.apple.com/documentation/carplay/cpnowplayingbutton/) 的 handler 来处理了，比如播放重复模式、播放速度等等。当然如果你的 App 是音频类的话，应该已经支持了这些功能，因为 iPhone 锁屏界面以及控制中心的音频播放信息和播放控制也是通过它们提供。因此，我们只需要针对 CarPlay 做下优化或者功能增强就行。我们具体要做的是：
+Независимо от того, построено ли ваше CarPlay-приложение на CarPlay framework или на MediaPlayer framework, информация об аудио на экране воспроизведения предоставляется через [MPNowPlayingInfoCenter](https://developer.apple.com/documentation/mediaplayer/mpnowplayinginfocenter/), а реакция на удалённые команды управления воспроизведением — через [MPRemoteCommandCenter](https://developer.apple.com/documentation/mediaplayer/mpremotecommandcenter/). Разница лишь в том, что в CarPlay framework часть событий удалённого управления, например режим повтора и скорость воспроизведения, обрабатывается через handler у [CPNowPlayingButton](https://developer.apple.com/documentation/carplay/cpnowplayingbutton/). Если ваше приложение аудио, то эти функции у него, скорее всего, уже поддерживаются, ведь информация о воспроизведении и управление на экране блокировки iPhone и в Пункте управления тоже работают через них. Поэтому нам нужно только оптимизировать или расширить функциональность для CarPlay. Конкретно нужно сделать следующее:
 
-* 设置和更新 MPNowPlayingInfoCenter 的 [nowPlayingInfo](https://developer.apple.com/documentation/mediaplayer/mpnowplayinginfocenter/1615903-nowplayinginfo)，它包含当前播放音频的元数据，如标题、作者、时长等等。时机：
+* Задавать и обновлять [nowPlayingInfo](https://developer.apple.com/documentation/mediaplayer/mpnowplayinginfocenter/1615903-nowplayinginfo) у MPNowPlayingInfoCenter, где содержатся метаданные текущего аудио: название, автор, длительность и т. п. Когда это делать:
 
-  * 切换音频（上一首、下一首等等）
-  * 暂停、恢复、停止播放
-  * seek（跳过片头、拖动进度等等）
-  * 更新播放速度（CPNowPlayingTemplate 中播放速度按钮的显示状态）。如果当前音频不在播放状态，需将播放速度设置为 0
+  * При смене аудио (предыдущее, следующее и т. д.)
+  * При паузе, возобновлении, остановке воспроизведения
+  * При seek (пропуск заставки, перемотка по прогрессу и т. д.)
+  * При изменении скорости воспроизведения (состояние отображения кнопки скорости в CPNowPlayingTemplate). Если текущее аудио не воспроизводится, скорость воспроизведения нужно установить в 0
   * ...
 
 ```swift
@@ -309,11 +309,11 @@ infoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: "Style",
                             … ]
 ```
 
-需要注意一点，对于播放进度也就是当前音频已播放时长的更新，系统会根据先前提供的**已播放时长**和**播放速度**自动推断出来。因此不需要也不推荐频繁更新 nowPlayingInfo，这代价很大。
+Обратите внимание: прогресс воспроизведения, то есть уже проигранное время текущего аудио, система вычисляет автоматически на основе ранее предоставленных **проигранного времени** и **скорости воспроизведения**. Поэтому часто обновлять nowPlayingInfo не нужно и не рекомендуется: это дорогая операция.
 
-* 除了 nowPlayingInfo，还有一些状态需要通过其它方式同步到 CarPlay App，比如：
+* Помимо nowPlayingInfo, часть состояния нужно синхронизировать с CarPlay-приложением другими способами, например:
 
-  * 音频播放状态：暂停/播放（CPNowPlayingTemplate 中播放按钮的显示状态）
+  * Состояние воспроизведения аудио: пауза/воспроизведение (состояние отображения кнопки воспроизведения в CPNowPlayingTemplate)
 
   ```objectivec
   typedef NS_ENUM(NSUInteger, MPNowPlayingPlaybackState) {
@@ -329,7 +329,7 @@ infoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: "Style",
   }
   ```
   
-  * 播放重复模式状态：顺序循环/单曲循环（CPNowPlayingTemplate 中播放重复模式按钮的显示状态）
+  * Состояние режима повтора: повтор списка/повтор одного трека (состояние отображения кнопки режима повтора в CPNowPlayingTemplate)
   
   ```objectivec
   typedef NS_ENUM(NSInteger, MPRepeatType) {
@@ -341,11 +341,11 @@ infoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: "Style",
   MPRemoteCommandCenter.sharedCommandCenter.changeRepeatModeCommand.currentRepeatType = MPRepeatTypeOne;
   ```
 
-下图中的音频封面、名称、描述、时长、当前播放进度、播放重复模式、播放速度等音频播放信息，都是通过以上方式同步显示到 CPNowPlayingTemplate 上的。你的音频 App 之前应该已经实现了该功能以将音频播放信息同步到 iPhone 锁屏界面以及控制中心，现在只需要检查下 CarPlay App 的 CPNowPlayingTemplate 中显示的音频播放信息是否准确即可。
+Обложка аудио, название, описание, длительность, текущий прогресс, режим повтора, скорость воспроизведения и другая информация на рисунке ниже синхронизируются с CPNowPlayingTemplate именно описанными выше способами. Ваше аудио-приложение, вероятно, уже реализовало эту функциональность для синхронизации информации о воспроизведении с экраном блокировки iPhone и Пунктом управления, поэтому сейчас достаточно проверить, что информация о воспроизведении, отображаемая в CPNowPlayingTemplate вашего CarPlay-приложения, корректна.
 
 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/e90b21bcb08844f28653fec9258721c3~tplv-k3u1fbpfcp-watermark.image?)
 
-* 响应 MPRemoteCommandCenter 事件，对远程播放控制事件做出响应，如播放、暂停、切换歌曲等等。
+* Реагировать на события MPRemoteCommandCenter, то есть на удалённые команды управления воспроизведением: воспроизведение, пауза, смена трека и т. д.
 
   * playCommand
   * pauseCommand
@@ -355,24 +355,24 @@ infoCenter.nowPlayingInfo = [MPMediaItemPropertyTitle: "Style",
   * changeRepeatModeCommand
   * changePlaybackRateCommand
   * ...
-* 使用 CarPlay framework 时，changeRepeatModeCommand、changePlaybackRateCommand 远程控制命令不再通过 target-action 处理，而是通过 [CPNowPlayingRepeatButton](https://developer.apple.com/documentation/carplay/cpnowplayingrepeatbutton/)、[CPNowPlayingPlaybackRateButton](https://developer.apple.com/documentation/carplay/cpnowplayingplaybackratebutton) 的 handler 处理，但 command.enabled 还是要开启。例如：
-  * 当 command.enabled 为 true 时，用户点击了播放重复模式按钮，CPNowPlayingRepeatButton 的 handler 就会被触发，然后你可以更新 App 播放重复模式，并将播放重复模式状态通过上述方式同步到 CarPlay。如果你的 App 还支持随机播放模式，可以添加 CPNowPlayingShuffleButton 并启用 changeShuffleModeCommand，配合 CPNowPlayingRepeatButton 完成 3 种模式的切换。
-  * 由于只能得知用户点击了按钮，而不知道用户点击按钮的具体意图，因此 CPNowPlayingPlaybackRateButton handler 的最佳实践是，设定一个播放速度范围，当用户点击时，增加 App 播放速度，并通过更新 nowPlayingInfo 同步到 CarPlay。如果当前音频正在以最快的支持速度播放，那么继续增加播放速度就将其调到最小速度，以此循环。
+* При использовании CarPlay framework удалённые команды changeRepeatModeCommand и changePlaybackRateCommand больше не обрабатываются через target-action, а обрабатываются через handler у [CPNowPlayingRepeatButton](https://developer.apple.com/documentation/carplay/cpnowplayingrepeatbutton/) и [CPNowPlayingPlaybackRateButton](https://developer.apple.com/documentation/carplay/cpnowplayingplaybackratebutton), но command.enabled всё равно нужно включить. Например:
+  * Когда command.enabled равен true и пользователь нажимает кнопку режима повтора, срабатывает handler у CPNowPlayingRepeatButton; в нём можно обновить режим повтора в приложении и синхронизировать его состояние с CarPlay описанным выше способом. Если ваше приложение также поддерживает режим случайного воспроизведения, можно добавить CPNowPlayingShuffleButton и включить changeShuffleModeCommand, чтобы вместе с CPNowPlayingRepeatButton переключать 3 режима.
+  * Поскольку известно только то, что пользователь нажал кнопку, но не его конкретное намерение, лучшая практика для handler у CPNowPlayingPlaybackRateButton такова: задать диапазон скоростей воспроизведения, при каждом нажатии увеличивать скорость в приложении и синхронизировать её с CarPlay через обновление nowPlayingInfo. Если текущее аудио уже воспроизводится на максимальной поддерживаемой скорости, то при следующем нажатии скорость сбрасывается на минимальную, и так по кругу.
 
-### 最佳实践
+### Лучшие практики
 
-#### 使用 userInfo 存储数据
+#### Хранение данных в userInfo
 
-CPListItem、CPListImageRowItem 都有个 [userInfo](https://developer.apple.com/documentation/carplay/cplistitem/2977574-userinfo?language=objc) 属性，它用来存储数据。`CPListItem -> userInfo` 关系就类似于 `UITableViewCell -> model`。
+У CPListItem и CPListImageRowItem есть свойство [userInfo](https://developer.apple.com/documentation/carplay/cplistitem/2977574-userinfo?language=objc), предназначенное для хранения данных. Отношение `CPListItem -> userInfo` аналогично `UITableViewCell -> model`.
 
 ```swift
 // Use this property to attach a value that provides additional context to the list item. For example, you can attach a model object and reference it in the list item’s handler when processing the selection.
 var userInfo: Any?
 ```
 
-#### 通过 isEnabled 设置 item 的可交互性（iOS 15）
+#### Управление интерактивностью item через isEnabled (iOS 15)
 
-CPListItem、CPListImageRowItem 都有个 [isEnabled](https://developer.apple.com/documentation/carplay/cplistitem/3751895-enabled?language=objc) 属性，它用来设置 item 的可交互性（默认值为 true）。isEnabled 设置为 false 的 item 将灰显且不可点击，也就是不会触发 item 的 `handler` 或者 CPListTemplateDelegate 的 `- listTemplate:didSelectListItem:completionHandler:` 方法。最佳实践是，将 “还没有播放记录”、“正在加载中” 这些本身就没有交互的 item 的 isEnabled 设置为 false，这样呈现的 UI 效果更好，不过该 API 在 iOS 15 开始才支持。
+У CPListItem и CPListImageRowItem есть свойство [isEnabled](https://developer.apple.com/documentation/carplay/cplistitem/3751895-enabled?language=objc), задающее интерактивность item (по умолчанию true). Item с isEnabled = false отображается серым и не реагирует на нажатия, то есть не вызывает его `handler` или метод `- listTemplate:didSelectListItem:completionHandler:` у CPListTemplateDelegate. Лучшая практика: устанавливать isEnabled = false для item, которые сами по себе не интерактивны, например «Истории воспроизведения пока нет» или «Загрузка...», так UI выглядит лучше; однако этот API поддерживается только начиная с iOS 15.
 
 ```swift
 // A Boolean value that indicates if the item is enabled.
@@ -380,9 +380,9 @@ CPListItem、CPListImageRowItem 都有个 [isEnabled](https://developer.apple.co
 var isEnabled: Bool
 ```
 
-#### 使用 handle 响应 item 的点击事件
+#### Обработка нажатий на item через handler
 
-CPListItem、CPListImageRowItem 都遵循 `CPSelectableListItem` 协议，有个 [handler](https://developer.apple.com/documentation/carplay/cplistitem/3667716-handler?language=objc) 属性，用来响应 item 的点击事件。如果你给 item 设置了 handler，那么点击 item 将触发 handler 而不触发 CPListTemplateDelegate 的方法。CPListTemplateDelegate 在 iOS 14 中已经被标记为弃用，建议使用 handler 来处理 action。
+CPListItem и CPListImageRowItem реализуют протокол `CPSelectableListItem`, у которого есть свойство [handler](https://developer.apple.com/documentation/carplay/cplistitem/3667716-handler?language=objc) для обработки нажатий на item. Если для item задан handler, то нажатие вызывает handler, а не методы CPListTemplateDelegate. CPListTemplateDelegate в iOS 14 помечен как устаревший (deprecated), поэтому для обработки действий рекомендуется использовать handler.
 
 ```swift
 /**
@@ -399,7 +399,7 @@ public protocol CPSelectableListItem : CPListTemplateItem {
 }
 ```
 
-handler 对比 CPListTemplateDelegate 处理 action 有个优点，handler 是针对 item 的，而 CPListTemplateDelegate 针对 CPListTemplate 里的所有 item。如果使用 CPListTemplateDelegate 的话我们就需要针对 “还没有播放记录”、“正在加载中” 等 item 做 guard 处理，而使用 handler 就可以单独处理或者不处理这些 item 的 action 了。
+У handler по сравнению с обработкой действий через CPListTemplateDelegate есть преимущество: handler привязан к конкретному item, а CPListTemplateDelegate относится ко всем item в CPListTemplate. При использовании CPListTemplateDelegate нам пришлось бы делать guard для item вроде «Истории воспроизведения пока нет» или «Загрузка...», а с handler действия таких item можно обрабатывать отдельно или не обрабатывать вовсе.
 
 ```swift
 let item = CPListItem(text: "正在加载中", detailText: nil)
@@ -412,9 +412,9 @@ if #available(iOS 15.0, *) {
 }
 ```
 
-#### 通过 isPlaying 属性来显示正在播放的指示器
+#### Индикатор воспроизведения через свойство isPlaying
 
-使用 CPListItem 来展示音频，你还可以通过 [isPlaying](https://developer.apple.com/documentation/carplay/cplistitem/3551780-isplaying) 属性来显示正在播放的指示器。
+Если CPListItem используется для отображения аудио, то с помощью свойства [isPlaying](https://developer.apple.com/documentation/carplay/cplistitem/3551780-isplaying) можно показать индикатор воспроизведения.
 
 ```swift
 var isPlaying: Bool
@@ -422,7 +422,7 @@ var isPlaying: Bool
 
 ![](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/33d26d619a764d15a0449063b6c531b4~tplv-k3u1fbpfcp-watermark.image?)
 
-指示器的位置默认在左边，隐藏了 image。你还可以通过 [playingIndicatorLocation](https://developer.apple.com/documentation/carplay/cplistitem/3566414-playingindicatorlocation?language=objc) 属性设置指示器位置为右边。
+По умолчанию индикатор находится слева и скрывает image. Через свойство [playingIndicatorLocation](https://developer.apple.com/documentation/carplay/cplistitem/3566414-playingindicatorlocation?language=objc) можно переместить индикатор вправо.
 
 ```swift
 enum CPListItemPlayingIndicatorLocation : Int {
@@ -433,13 +433,13 @@ enum CPListItemPlayingIndicatorLocation : Int {
 var playingIndicatorLocation: CPListItemPlayingIndicatorLocation
 ```
 
-#### 支持打开当前播放列表
+#### Поддержка открытия текущего плейлиста
 
 ![](https://gitee.com/junteng/images/raw/master/img/20211222110753.jpg)
 
-一个好用的音频 App 的播放页应该支持打开当前播放列表，方便用户切歌，CarPlay App 也应支持。特别是，如果一个专辑是通过 iPhone App 进行播放的，而 CarPlay App 没有该专辑数据（CarPlay 和 iPhone App 的数据可能不同），那么用户想听该专辑的其它歌曲的话，就只能通过“上一首/下一首”或者“iPhone App 的播放列表”进行切歌。因此，在 CarPlay App 的播放页中支持打开当前播放列表是很棒的。
+Удобный экран воспроизведения аудио-приложения должен позволять открыть текущий плейлист для удобного переключения треков, и CarPlay-приложение тоже должно это поддерживать. Особенно если альбом воспроизводился через iPhone-приложение, а в CarPlay-приложении данных об этом альбоме нет (данные в CarPlay и в iPhone-приложении могут различаться): тогда, чтобы послушать другие треки альбома, пользователь может переключаться только кнопками «Предыдущий/Следующий» или через «плейлист iPhone-приложения». Поэтому очень хорошо, если на экране воспроизведения CarPlay-приложения можно открыть текущий плейлист.
 
-CPNowPlayingTemplate 支持在右上角显示一个打开当前播放列表的按钮，点击后 push 一个 CPListTemplate，来展示当前的播放列表。
+CPNowPlayingTemplate поддерживает кнопку открытия текущего плейлиста в правом верхнем углу; по нажатию выполняется push CPListTemplate с текущим плейлистом.
 
 ```swift
 let nowPlayingTemplate = CPNowPlayingTemplate.shared
@@ -454,31 +454,31 @@ ObserverClass: CPNowPlayingTemplateObserver {
 }
 ```
 
-### 页面跳转
+### Переходы между страницами
 
-还记得在 CarPlay App 入口 [- templateApplicationScene:didConnectInterfaceController:](https://developer.apple.com/documentation/carplay/cptemplateapplicationscenedelegate/3578119-templateapplicationscene?language=objc) 中的 [CPInterfaceController](https://developer.apple.com/documentation/carplay/cpinterfacecontroller/) 吗，它作为我们 CarPlay App 的入口 controller，我们将一个 template 作为 rootTemplate 赋值给它。当我们要进行页面跳转时也是靠它，有点类似于 UINavigationController，它支持 push、pop、present、dismiss 等等操作（present、dismiss 操作仅 CPActionSheetTemplate、CPVoiceControlTemplate、CPAlertTemplate）。对于音频 App，一般 push 操作就够用，子页面的左上角都自带返回按钮的。
+Помните [CPInterfaceController](https://developer.apple.com/documentation/carplay/cpinterfacecontroller/) в точке входа CarPlay-приложения [- templateApplicationScene:didConnectInterfaceController:](https://developer.apple.com/documentation/carplay/cptemplateapplicationscenedelegate/3578119-templateapplicationscene?language=objc)? Он служит входным контроллером нашего CarPlay-приложения, и ему мы присваиваем template в качестве rootTemplate. Переходы между страницами тоже выполняются через него: он похож на UINavigationController и поддерживает push, pop, present, dismiss и т. д. (present и dismiss — только для CPActionSheetTemplate, CPVoiceControlTemplate, CPAlertTemplate). Для аудио-приложения обычно хватает push, а на дочерних страницах кнопка «Назад» в левом верхнем углу есть по умолчанию.
 
-### 代码设计
+### Архитектура кода
 
-可参考：
+Можно ориентироваться на следующую схему:
 
 ![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2f1c43bf92714e8e8dde65bd14dc3089~tplv-k3u1fbpfcp-watermark.image?)
 
-### 图片
+### Изображения
 
-#### 图标和图片
+#### Иконки и изображения
 
-可以看看 [CarPlay - 设计指南](https://developer.apple.com/design/human-interface-guidelines/carplay/overview/introduction/)，并将它发给你的 PM 和 UI。
+Посмотрите [CarPlay - Руководство по дизайну](https://developer.apple.com/design/human-interface-guidelines/carplay/overview/introduction/) и отправьте его своему PM и UI-дизайнеру.
 
-#### 深色/浅色模式
+#### Тёмный/светлый режим
 
-适配方案和 iPhone App 一样，如果你的 App 需要两种风格的话就支持一下。
+Подход к адаптации такой же, как в iPhone-приложении: если вашему приложению нужны оба стиля, поддержите их.
 
-#### 异步图片
+#### Асинхронные изображения
 
-* CarPlay 不支持 GIF 图片，配置会导致 crash。笔者尝试取出 GIF 图的第一帧，发现还是不支持，或许是我使用方式不对。
-* asyncImage 也需要适配下 scale，否则会模糊。
-* 可以对 CPListItem 和 CPListImageRowItem 扩展下 asyncImage 的方法，方便使用。
+* CarPlay не поддерживает GIF-изображения, их использование приведёт к crash. Автор пробовал извлекать из GIF первый кадр, но он всё равно не поддерживался; возможно, автор делал что-то не так.
+* В asyncImage тоже нужно учитывать scale, иначе изображение будет размытым.
+* Для CPListItem и CPListImageRowItem можно добавить расширения с методами asyncImage для удобства использования.
 
 ```swift
 @available(iOS 14, *)
@@ -497,7 +497,7 @@ extension CPAsyncImage {
             return
         }
         
-        // 这儿也可以根据 urlType 做下过滤
+        // Здесь также можно выполнить фильтрацию по urlType
         
         SDWebImageManager.shared.loadImage(with: url, options: .retryFailed, progress: nil) { image, data, error, type, finished, imageURL in
             
@@ -554,38 +554,38 @@ extension CPListImageRowItem: CPAsyncImage {
 }
 ```
 
-### 重新加载数据
+### Перезагрузка данных
 
-网络不好的情况下启动 CarPlay App，可能就会存在请求超时，CarPlay App 中无数据。处理方式有以下几种：
+Если запустить CarPlay-приложение при плохой сети, возможен тайм-аут запроса, и в CarPlay-приложении не будет данных. Есть несколько способов это обработать:
 
-1. 不重新加载。如果是首页，则用户需要重新启动 CarPlay App 才能重新加载；如果是子页面，则用户需要退出并重新进入子页面才能重新加载。看了网易云 CarPlay App 就是这样处理的，不过它的首页有固定的几个 item，倒是不影响体验。如果你的首页内容没有本地 item，那不建议以这种方式处理；
-2. 如果 rootTemplate 是 CPTabBarTemplate，那么你可以在 `- tabBarTemplate:didSelectTemplate:` 时机对 selectedTemplate 进行重新加载操作；
-3. 对于第二种方式，重新加载对用户来说是无感知的，因为你没办法或者不方便自己添加个活动指示器。我的方案是，在请求数据的过程中，添加个 loading item（比如使用 CPListItem 并显示 “正在加载中”）。如果请求失败，则更新 item 为 failure item（比如使用 CPListItem 并显示 “加载失败，点击重试”）。当用户点击 failure item 时，更新 item 为 loading item，并重新请求数据。对于每个需要从服务端拉取数据的页面都可以这样处理。
+1. Не перезагружать. Если это главная страница, пользователю придётся перезапустить CarPlay-приложение, чтобы данные загрузились снова; если это дочерняя страница, пользователю придётся выйти из неё и зайти снова. CarPlay-приложение NetEase Cloud Music (Wangyi Yun) обрабатывает это именно так, но на его главной странице есть несколько фиксированных item, поэтому на опыт это не влияет. Если на вашей главной странице нет локальных item, так делать не рекомендуется;
+2. Если rootTemplate — CPTabBarTemplate, можно выполнять перезагрузку selectedTemplate в момент `- tabBarTemplate:didSelectTemplate:`;
+3. При втором способе перезагрузка для пользователя незаметна, потому что самому добавить индикатор активности нельзя или неудобно. Мой вариант: на время запроса данных добавлять loading item (например, CPListItem с текстом «Загрузка...»). Если запрос завершился ошибкой, обновить item до failure item (например, CPListItem с текстом «Не удалось загрузить, нажмите для повтора»). Когда пользователь нажимает на failure item, он снова превращается в loading item и данные запрашиваются заново. Так можно поступать на каждой странице, которой нужны данные с сервера.
 
-是否需要刷新？如果想要允许使用 CarPlay App 的过程中去刷新数据，那么可以通过第二种方式处理。不过，用户单次使用 CarPlay 的时间不会很长，没有必要做刷新，下次启动的时间拉取新数据就好。因此，我只针对首次数据加载失败的情况做了重新加载处理。
+Нужно ли обновление? Если вы хотите разрешить обновлять данные в процессе использования CarPlay-приложения, можно применить второй способ. Однако пользователь обычно пользуется CarPlay за один раз недолго, обновление не нужно: свежие данные можно загрузить при следующем запуске. Поэтому я сделал перезагрузку только для случая, когда не удалась первая загрузка данных.
 
-### 关注弱网以及无网环境下的用户体验
+### Внимание к работе при слабой сети и без сети
 
-在 WWDC 或相关文档中，Apple 多次提到要关注弱网以及无网环境下的用户体验，因为驾驶过程中可能会经过网络不好的路段或区域。例如上面提到的 ”请求超时，重新加载数据“ 问题、CPNowPlayingTemplate 中数据同步以及播放控制事件是否出现异常等等。
+В материалах WWDC и в документации Apple не раз упоминает, что нужно заботиться о пользовательском опыте при слабой сети или её отсутствии, ведь во время поездки автомобиль может проезжать участки или районы с плохим покрытием. Например, упомянутая выше проблема «тайм-аут запроса, перезагрузка данных», а также корректность синхронизации данных в CPNowPlayingTemplate и событий управления воспроизведением и т. д.
 
 ### Siri
 
-即使你的 App 不支持 SiriKit，也还是可以支持通过 Siri 来切歌、暂停或恢复播放的，因为这些远程控制事件天然就支持 Siri。
+Даже если ваше приложение не поддерживает SiriKit, переключение треков, пауза и возобновление воспроизведения через Siri всё равно будут работать, потому что эти события удалённого управления поддерживают Siri изначально.
 
-### 测试
+### Тестирование
 
-在真实环境（汽车中）测试。[Apple｜使用 CarPlay Simulator 运行和调试 CarPlay App](https://developer.apple.com/documentation/carplay/using_the_carplay_simulator?language=objc) 中列举了一些在 CarPlay Simulator 上无法测试的功能。
+Тестируйте в реальных условиях (в автомобиле). В [Apple｜Запуск и отладка CarPlay-приложения в CarPlay Simulator](https://developer.apple.com/documentation/carplay/using_the_carplay_simulator?language=objc) перечислены функции, которые нельзя протестировать в CarPlay Simulator.
 
-对于音频 App，Simulator 在播放状态下有一些局限，不能反映真实的用户体验。
+Для аудио-приложений у Simulator есть ограничения в состоянии воспроизведения: он не отражает реальный пользовательский опыт.
 
-为了用 LLDB 全面调试你的 App，Xcode 9 开始支持无线调试，这样就可以在 iPhone 连接汽车的同时调试你的 App。可以观看 [WWDC19 - 使用 Xcode 9 进行调试](https://developer.apple.com/wwdc17/404) 了解更多。
+Чтобы полноценно отлаживать приложение с помощью LLDB, начиная с Xcode 9 поддерживается беспроводная отладка, так что приложение можно отлаживать, пока iPhone подключён к автомобилю. Подробнее можно посмотреть в [WWDC19 - Отладка с Xcode 9](https://developer.apple.com/wwdc17/404).
 
-## 注意点 & 最佳实践
+## Важные моменты и лучшие практики
 
-* 单例问题。CarPlay 用到了单例类，CarPlay App 关闭，但 iPhone App 没关闭，进程是还在的，单例还未释放，可能会造成一些问题。可以在 `- templateApplicationScene:didConnectInterfaceController:` 中初始化单例，在 `- templateApplicationScene:didDisconnectInterfaceController:` 中释放单例。
-* CarPlay 的语言是跟随 iPhone 的，Simulator 也是如此。
-* CarPlay framework 需要设置为弱链接 optional（Target > Build phases > Link Binary With Libraries），否则在 iOS 12 以下启动 App 会 crash。
-* CarPlay 断开连接时，建议暂停音乐。
-* CarPlay 断开连接时，可以通过 Memory Graph 检查下有无内存泄漏。
-* Template 页面最好至少显示一项内容，特别是你没有使用 CPTabBarTemplate 作为 rootTemplate 的情况，否则页面将一片空白，影响用户体验。例如，在最近播放页面，当没有播放记录时，填充一个 CPListItem 并显示 “当前没有播放记录”。
-* 你需要注意一些情况，比如 iPhone 锁屏、用户未登录时，你的 App 仍然需要在 CarPlay 中展示完美的功能性。
+* Проблема синглтонов. CarPlay использует классы-синглтоны: если CarPlay-приложение закрыто, а iPhone-приложение нет, процесс продолжает жить, синглтон не освобождён, и это может приводить к проблемам. Можно инициализировать синглтон в `- templateApplicationScene:didConnectInterfaceController:`, а освобождать в `- templateApplicationScene:didDisconnectInterfaceController:`.
+* Язык CarPlay следует языку iPhone, в Simulator так же.
+* CarPlay framework нужно сделать слабо подключаемым (weak link, optional) (Target > Build phases > Link Binary With Libraries), иначе запуск приложения на iOS ниже 12 приведёт к crash.
+* При отключении CarPlay рекомендуется ставить музыку на паузу.
+* При отключении CarPlay можно проверить через Memory Graph, нет ли утечек памяти.
+* Страница Template должна отображать хотя бы один элемент, особенно если вы не используете CPTabBarTemplate в качестве rootTemplate; иначе страница будет пустой, что ухудшает опыт. Например, на странице недавно воспроизведённого, когда истории воспроизведения нет, добавьте CPListItem с текстом «Сейчас нет истории воспроизведения».
+* Учитывайте такие ситуации, как блокировка iPhone или то, что пользователь не вошёл в аккаунт: ваше приложение должно по-прежнему отлично работать в CarPlay.

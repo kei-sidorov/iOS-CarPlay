@@ -1,105 +1,105 @@
 ![](https://user-images.githubusercontent.com/76877122/143779514-75ad23b9-ee06-4c88-8a55-92dae9f7ef04.png)
 
-## 系列文章
+## Серия статей
 
-* [iOS CarPlay｜兼容 UIScene](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay｜兼容%20UIScene)
-* [iOS CarPlay｜让你的音频 App 支持 CarPlay](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9C%E8%AE%A9%E4%BD%A0%E7%9A%84%E9%9F%B3%E9%A2%91%20App%20%E6%94%AF%E6%8C%81%20CarPlay.md)
-* [iOS CarPlay｜常见问题解答](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9C%E8%AE%A9%E4%BD%A0%E7%9A%84%E9%9F%B3%E9%A2%91%20App%20%E6%94%AF%E6%8C%81%20CarPlay.md)
-* [iOS CarPlay｜WWDC 笔记](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9CWWDC%20%E7%AC%94%E8%AE%B0.md)
-* iOS CarPlay｜使用 MediaPlayer framework 开发
-* [iOS CarPlay｜WWDC22 10016 - 通过 CarPlay 让你的 App 发挥更大的作用](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay｜WWDC22%2010016%20-%20通过%20CarPlay%20让你的%20App%20发挥更大的作用.md)
+* [iOS CarPlay｜Совместимость с UIScene](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay｜兼容%20UIScene)
+* [iOS CarPlay｜Добавляем поддержку CarPlay в аудио-приложение](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9C%E8%AE%A9%E4%BD%A0%E7%9A%84%E9%9F%B3%E9%A2%91%20App%20%E6%94%AF%E6%8C%81%20CarPlay.md)
+* [iOS CarPlay｜Часто задаваемые вопросы](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9C%E8%AE%A9%E4%BD%A0%E7%9A%84%E9%9F%B3%E9%A2%91%20App%20%E6%94%AF%E6%8C%81%20CarPlay.md)
+* [iOS CarPlay｜Заметки по WWDC](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay%EF%BD%9CWWDC%20%E7%AC%94%E8%AE%B0.md)
+* iOS CarPlay｜Разработка с использованием MediaPlayer framework
+* [iOS CarPlay｜WWDC22 10016 - Расширьте возможности своего приложения с помощью CarPlay](https://github.com/teney97/iOS-CarPlay/blob/main/iOS%20CarPlay｜WWDC22%2010016%20-%20通过%20CarPlay%20让你的%20App%20发挥更大的作用.md)
 
-## 前言
+## Предисловие
 
-笔者负责了宝宝巴士 CarPlay App 的研发，想与你分享下开发经验。通过本篇文章，你可以学习到：
+Автор отвечал за разработку CarPlay-приложения Babybus (宝宝巴士) и хочет поделиться опытом разработки. Из этой статьи вы узнаете:
 
-* CarPlay 是什么，适用于哪些类型的 App
-* 让你的工程兼容 UIScene，也就是从传统的 UIWindow 和 AppDelegate 向 SceneDelegate 过渡
-* 开发一个音频类 CarPlay App 的详细过程
+* что такое CarPlay и какие типы приложений он поддерживает;
+* как сделать проект совместимым с UIScene, то есть перейти от традиционных UIWindow и AppDelegate к SceneDelegate;
+* как шаг за шагом разработать аудио-приложение для CarPlay.
 
-## CarPlay 是什么
+## Что такое CarPlay
 
-CarPlay 是 Apple 发布的一个车载系统，可以配合 iPhone 使用（iPad 不支持）。其前身是叫 iOS in the Car，2014 年更名为 CarPlay。CarPlay 是当你驾驶时使用 iPhone 的更智能、更安全的方式。
+CarPlay — это автомобильная система от Apple, которая работает совместно с iPhone (iPad не поддерживается). Ранее она называлась iOS in the Car, а в 2014 году была переименована в CarPlay. CarPlay — это более умный и безопасный способ пользоваться iPhone за рулём.
 
-简单地说，如果你的汽车支持 CarPlay，那么当你的汽车（通过数据线、蓝牙、Wi-Fi）连接 iPhone 时，汽车显示屏会自动切换到 CarPlay，iPhone 上所有支持 CarPlay 的 App 会自动显示在 CarPlay 中，你可以在 iPhone 设置（通用 > CarPlay 车载）中屏蔽指定 App 或调整顺序。Apple 对 CarPlay App 用户界面采用一致的设计，内容由 App 自己提供。
+Проще говоря, если ваш автомобиль поддерживает CarPlay, то при подключении iPhone к автомобилю (по кабелю, через Bluetooth или Wi-Fi) экран автомобиля автоматически переключается на CarPlay, а все приложения на iPhone, поддерживающие CarPlay, автоматически отображаются в CarPlay. В настройках iPhone (Основные > CarPlay) можно скрыть отдельные приложения или изменить их порядок. Apple использует единый дизайн пользовательского интерфейса CarPlay-приложений, а содержимое предоставляет само приложение.
 
-控制 CarPlay 主要有 3 种方式：Siri、触屏显示屏、物理按键。
+Управлять CarPlay можно тремя основными способами: через Siri, сенсорный экран и физические кнопки.
 
-## CarPlay 支持哪些 App 及功能
+## Какие приложения и функции поддерживает CarPlay
 
-* 音频 App 可以提供音乐、新闻、播客等。
-* 通信 App（Messaging、VoIP calling）可以发送和接收消息，同时可以配合 Siri 使用。
-* 导航 App 可以提供详细的地图、目的地搜索、路线指导和用户通知。
-* 汽车制造商的 App 可以提供特定于车辆的控制和显示，让司机在不离开 CarPlay 的情况下保持联系。
-* iOS 14 新功能，支持 EV 充电、停车和快餐订购 App。此外，所有 CarPlay App 都可以利用 CarPlay framework 提供一致的设计，并针对在汽车中的使用进行了优化。
+* Аудио-приложения могут предоставлять музыку, новости, подкасты и т. д.
+* Коммуникационные приложения (Messaging, VoIP calling) могут отправлять и принимать сообщения, а также работать совместно с Siri.
+* Навигационные приложения могут предоставлять подробные карты, поиск пунктов назначения, пошаговые маршруты и уведомления для пользователя.
+* Приложения автопроизводителей могут предоставлять управление и отображение данных, специфичных для автомобиля, позволяя водителю оставаться на связи, не покидая CarPlay.
+* Новое в iOS 14: поддержка приложений для зарядки электромобилей, парковки и заказа фастфуда. Кроме того, все CarPlay-приложения могут использовать CarPlay framework для единообразного дизайна, оптимизированного для использования в автомобиле.
 
-## CarPlay App 开发流程概览
+## Обзор процесса разработки CarPlay-приложения
 
-1. 首先需要确定你的 App 是否适用于 CarPlay，然后去开发者网站申请对应 App 类型的 CarPlay 权限，并对工程进行配置。只有这样你的工程才能使用 CarPlay Simulator。因此如果你计划要开发 CarPlay App 的话，最好提前去申请权限，因为 Apple 审核还要时间。在此期间可以看看相关开发文档，等权限申请下来就可以使用 CarPlay Simulator 调试开发啦。参考文档：[Apple｜申请 CarPlay 权限](https://developer.Apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)。
+1. Сначала нужно определить, подходит ли ваше приложение для CarPlay, затем на сайте для разработчиков запросить соответствующий CarPlay entitlement для вашего типа приложения и настроить проект. Только после этого проект сможет работать с CarPlay Simulator. Поэтому, если вы планируете разрабатывать CarPlay-приложение, лучше подать заявку на разрешение заранее: проверка в Apple занимает время. За это время можно изучить документацию, а когда разрешение будет получено, можно отлаживать приложение в CarPlay Simulator. Документация: [Apple｜Запрос CarPlay entitlement](https://developer.Apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc).
 
-2. 从 iOS 14 开始，你可以使用 CarPlay framework 来开发音频 CarPlay App（如果是导航类 App，在 iOS 12 就可以使用），它提供了一些 UI 模版来支持开发者自定义界面；如果你要兼容 iOS 13 及更早版本的话需要使用 MediaPlayer framework 开发，它向前兼容。因此，如果你的 App 需要在 iOS 14 及更高版本上使用 CarPlay framework，并且兼容 iOS 13 及更早版本的话，就要维护两套代码，开发工作量可能接近 double。笔者仅支持了 iOS 14 及更高版本，在本篇文章中会详细讲解使用 CarPlay framework 的开发细节。如果你想支持低版本的话也可以看看笔者对「WWDC17 - 让您的 App 支持 CarPlay 车载」和「WWDC18 - CarPlay 车载音频和导航 App」做的笔记。
+2. Начиная с iOS 14 для разработки аудио-приложений для CarPlay можно использовать CarPlay framework (для навигационных приложений он доступен уже в iOS 12). Он предоставляет набор UI-шаблонов, позволяющих разработчикам настраивать интерфейс. Если нужна совместимость с iOS 13 и более ранними версиями, придётся использовать MediaPlayer framework, который работает и на старых версиях. Таким образом, если вашему приложению нужно использовать CarPlay framework на iOS 14 и выше и при этом поддерживать iOS 13 и ниже, придётся поддерживать две версии кода, и объём работы может вырасти почти вдвое. Автор поддержал только iOS 14 и выше, поэтому в этой статье подробно разбирается разработка с CarPlay framework. Если вы хотите поддерживать и старые версии, посмотрите также заметки автора по сессиям «WWDC17 - Добавьте поддержку CarPlay в своё приложение» и «WWDC18 - Аудио- и навигационные приложения CarPlay».
 
-3. 在 iOS 14 及更高版本中使用 CarPlay framework 来开发 CarPlay App 必须使用 UIScene（UIScene 是 Apple 于 iOS 13 引入的，用于构建多窗口应用），因此你的工程必须从传统的 UIWindow 和 AppDelegate 向 SceneDelegate 过渡。如果你的工程已经兼容了 UIScene，那么就可以省去这步骤的工作；如果还未兼容的话，也可以看看我在本篇文章中提到的一些注意点。
+3. Для разработки CarPlay-приложения с помощью CarPlay framework на iOS 14 и выше необходимо использовать UIScene (UIScene появился в iOS 13 и предназначен для создания многооконных приложений), поэтому проект должен перейти от традиционных UIWindow и AppDelegate к SceneDelegate. Если ваш проект уже совместим с UIScene, этот шаг можно пропустить; если нет — обратите внимание на некоторые моменты, о которых говорится в этой статье.
 
-4. CarPlay App 是附属于 iPhone App 的，它们是同一进程。
+4. CarPlay-приложение является частью iPhone-приложения, они работают в одном процессе.
 
-   * 如果是先启动了 CarPlay App，那么系统会在后台启动你的 iPhone App；
-   * 如果杀死了 iPhone App 进程，那么 CarPlay App 就会关闭（在 UIScene 中是断开场景的连接）；
-   * 如果关闭 CarPlay App（在 UIScene 中是断开场景的连接），iPhone App 进程不会被杀死。（好像只有退出整个 CarPlay，才会关闭所有 CarPlay App，没办法关闭指定 CarPlay App）；
+   * Если первым запущено CarPlay-приложение, система запустит ваше iPhone-приложение в фоновом режиме;
+   * Если процесс iPhone-приложения завершён, CarPlay-приложение закроется (в UIScene это отключение сцены);
+   * Если закрыть CarPlay-приложение (в UIScene это отключение сцены), процесс iPhone-приложения завершён не будет. (По-видимому, все CarPlay-приложения закрываются только при выходе из CarPlay целиком, закрыть отдельное CarPlay-приложение нельзя);
 
-   在 iOS 13 中，Apple 对 CarPlay 做了改进，CarPlay App 和 iPhone App 可以一个处于后台一个处于前台。而 iOS 13 之前 CarPlay App 和 iPhone App 是高度绑定的，只能共处前台或后台，用户体验不好。例如你在使用 CarPlay 导航时，手机将无法进行别的操作，否则会打断导航进程。
+   В iOS 13 Apple улучшила CarPlay: CarPlay-приложение и iPhone-приложение могут находиться одно в фоне, а другое на переднем плане. До iOS 13 CarPlay-приложение и iPhone-приложение были жёстко связаны и могли находиться только одновременно на переднем плане или в фоне, что ухудшало пользовательский опыт. Например, при использовании навигации в CarPlay на телефоне нельзя было выполнять другие действия, иначе навигация прерывалась.
 
-5. 笔者开发的是音频类 CarPlay App，对其它类型的 App 没做了解，不过大致的开发流程应该差不多。开发一个音频类 CarPlay App 就是从 CPTemplateApplicationSceneDelegate 入口开始来构建 UI，填充数据。CarPlay App 的用户界面相对来说比较固定，但使用 CarPlay framework，Apple 支持更多可定制化的 UI 了。当车机连接后，音频将通过汽车扬声器播放。无论你是使用 CarPlay framework 还是 MediaPlayer framework 来构建的 CarPlay App，都是通过 MPNowPlayingInfoCenter 和 MPRemoteCommandCenter 来提供播放界面的音频信息以及响应远程播放控制事件。只不过在 CarPlay framework 中，一些远程控制事件通过 CPNowPlayingButton 的 handler 来处理了，比如播放模式、播放速率等等。当然如果你的 App 是音频类的话，应该已经支持了这些功能，因为 iPhone 锁屏界面以及控制中心的音频播放信息和播放控制也是通过它们提供。因此，我们只需要针对 CarPlay 做下优化或者功能增强就行。
+5. Автор разрабатывал аудио-приложение для CarPlay и не изучал другие типы приложений, но общий процесс разработки должен быть примерно одинаковым. Разработка аудио-приложения для CarPlay начинается с точки входа CPTemplateApplicationSceneDelegate: в ней строится UI и заполняется данными. Пользовательский интерфейс CarPlay-приложения относительно жёстко задан, но с CarPlay framework Apple позволяет гораздо больше его настраивать. После подключения к головному устройству автомобиля звук воспроизводится через динамики автомобиля. Независимо от того, используете ли вы CarPlay framework или MediaPlayer framework, информация об аудио на экране воспроизведения и обработка событий удалённого управления воспроизведением осуществляются через MPNowPlayingInfoCenter и MPRemoteCommandCenter. Разница лишь в том, что в CarPlay framework часть событий удалённого управления, например режим воспроизведения и скорость воспроизведения, обрабатывается через handler у CPNowPlayingButton. Если ваше приложение аудио-типа, оно, скорее всего, уже поддерживает эти функции, поскольку информация о воспроизведении и элементы управления на экране блокировки iPhone и в Пункте управления тоже предоставляются через них. Поэтому для CarPlay нам нужны лишь оптимизация или расширение функциональности.
 
-   * 设置和更新 MPNowPlayingInfoCenter 的 nowPlayingInfo，它包含当前播放音频的信息，如标题、作者、时长等等；
-   * 响应 MPRemoteCommandCenter 事件，对远程播放控制事件做出响应，如播放、暂停、切换歌曲等等；
+   * Установка и обновление nowPlayingInfo у MPNowPlayingInfoCenter, которое содержит информацию о текущем аудио: название, автор, длительность и т. д.;
+   * Обработка событий MPRemoteCommandCenter — реакция на события удалённого управления воспроизведением: воспроизведение, пауза, переключение трека и т. д.;
 
-   除了上面两点，你可能还需要：
+   Помимо этих двух пунктов, вам, возможно, понадобится:
 
-   * 设置和更新 MPNowPlayingInfoCenter 的 playbackState，以更新 CarPlay App 上显示的音频播放状态：播放/暂停；
-   * 设置和更新 MPRemoteCommandCenter 的 changeRepeatModeCommand.currentRepeatType，以更新 CarPlay App 上显示的播放模式状态：顺序循环/单曲循环
+   * Установка и обновление playbackState у MPNowPlayingInfoCenter, чтобы обновлять состояние воспроизведения, отображаемое в CarPlay-приложении: воспроизведение/пауза;
+   * Установка и обновление changeRepeatModeCommand.currentRepeatType у MPRemoteCommandCenter, чтобы обновлять режим воспроизведения, отображаемый в CarPlay-приложении: повтор списка/повтор одного трека
 
-   即使你的 App 暂时还不打算支持 CarPlay，你也可以通过适配好 MPNowPlayingInfoCenter 和 MPRemoteCommandCenter 来使你的 App 支持 CarPlay ”播放中“ App。
+   Даже если ваше приложение пока не планирует поддерживать CarPlay, правильная реализация MPNowPlayingInfoCenter и MPRemoteCommandCenter позволит ему отображаться в CarPlay как приложение «Сейчас играет».
 
-6. 了解 CarPlay framework 都支持哪些功能、 UI，然后帮助你的 PM 和 UI 完成需求、原型和设计。学习 UI 的使用，界面基本就是由 Template 和 Item 组成，常用的有 CPTabBarTemplate、CPListTemplate、CPListItem、CPListImageRowItem 等等。
+6. Изучите, какие функции и элементы UI поддерживает CarPlay framework, и помогите своему PM и дизайнеру подготовить требования, прототипы и дизайн. Изучите работу с UI: интерфейс по сути состоит из Template и Item, наиболее часто используются CPTabBarTemplate, CPListTemplate, CPListItem, CPListImageRowItem и т. д.
 
-7. 然后，就是开发啦！此处省略 ... 字。
+7. Дальше — собственно разработка! Здесь опущено ... слов.
 
-8. 最后，在真实环境（汽车中）测试。[Apple｜使用 CarPlay Simulator 运行和调试 CarPlay App](https://developer.Apple.com/documentation/carplay/using_the_carplay_simulator?language=objc) 中列举了一些在 CarPlay Simulator 上无法测试的功能。另外，Apple 建议我们多测试弱网以及无网环境下的用户体验，因为驾驶过程中可能会经过网络不好的路段或区域。
+8. Наконец, тестирование в реальных условиях (в автомобиле). В документе [Apple｜Запуск и отладка CarPlay-приложения в CarPlay Simulator](https://developer.Apple.com/documentation/carplay/using_the_carplay_simulator?language=objc) перечислены функции, которые нельзя протестировать в CarPlay Simulator. Кроме того, Apple рекомендует больше тестировать работу при слабой сети и при отсутствии сети, поскольку во время поездки можно проезжать участки или районы с плохим покрытием.
 
-9. 你可以玩玩 Apple 提供的音频类 CarPlay App 示例：[Apple｜CarPlay Music App](https://developer.Apple.com/documentation/carplay/integrating_carplay_with_your_music_App?language=objc)。
+9. Можно поэкспериментировать с примером аудио-приложения для CarPlay от Apple: [Apple｜CarPlay Music App](https://developer.Apple.com/documentation/carplay/integrating_carplay_with_your_music_App?language=objc).
 
-## 相关资料
+## Дополнительные материалы
 
 ### WWDC
 
-* [WWDC16｜开发 CarPlay 车载系统 - 第 1 部分](https://developer.Apple.com/wwdc16/722)
-* [WWDC16｜开发 CarPlay 车载系统 - 第 2 部分](https://developer.Apple.com/wwdc16/723)
-* [WWDC17｜开发无线 CarPlay 车载系统](https://developer.Apple.com/wwdc17/717)
-* [WWDC17｜让您的 App 支持 CarPlay 车载](https://developer.Apple.com/wwdc17/719)
-* [WWDC18｜CarPlay 车载音频和导航 App](https://developer.Apple.com/wwdc18/213)
-  * [WWDC 2018：车载（CarPlay）在音频和导航 APP 中的应用](https://juejin.cn/post/6844903619192422413)
-* [WWDC19｜CarPlay 车载系统改进](https://developer.Apple.com/wwdc19/252)
-* [WWDC20｜使用 CarPlay 车载系统为你的 App 提速](https://developer.Apple.com/wwdc20/10635)
-  * [WWDC20 内参｜WWDC20 10635 - 使用 CarPlay 车载系统为你的 App 提速](<https://xiaozhuanlan.com/topic/7620814593>)
+* [WWDC16｜Разработка системы CarPlay — часть 1](https://developer.Apple.com/wwdc16/722)
+* [WWDC16｜Разработка системы CarPlay — часть 2](https://developer.Apple.com/wwdc16/723)
+* [WWDC17｜Разработка беспроводного CarPlay](https://developer.Apple.com/wwdc17/717)
+* [WWDC17｜Добавьте поддержку CarPlay в своё приложение](https://developer.Apple.com/wwdc17/719)
+* [WWDC18｜Аудио- и навигационные приложения CarPlay](https://developer.Apple.com/wwdc18/213)
+  * [WWDC 2018：CarPlay в аудио- и навигационных приложениях](https://juejin.cn/post/6844903619192422413)
+* [WWDC19｜Улучшения CarPlay](https://developer.Apple.com/wwdc19/252)
+* [WWDC20｜Ускорьте работу своего приложения с помощью CarPlay](https://developer.Apple.com/wwdc20/10635)
+  * [WWDC20 Inside｜WWDC20 10635 - Ускорьте работу своего приложения с помощью CarPlay](<https://xiaozhuanlan.com/topic/7620814593>)
 
-### 文档
+### Документация
 
-* [CarPlay｜介绍](https://www.Apple.com.cn/ios/carplay/)
-* [CarPlay｜文档首页](https://developer.Apple.com/carplay/)
-* [CarPlay｜设计指南](https://developer.Apple.com/design/human-interface-guidelines/carplay/overview/introduction/)
-* [CarPlay｜开发者文档](https://developer.Apple.com/documentation/carplay?language=objc)
-  * [申请 CarPlay 权限](https://developer.Apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
-  * [使用 CarPlay Simulator 运行和调试 CarPlay App](https://developer.Apple.com/documentation/carplay/using_the_carplay_simulator?language=objc) （需要先完成上一步，才能启用 CarPlay Simulator 以及在 CarPlay 主屏幕中看到你的 App。如果你使用 M1 Mac，那可能用不了 CarPlay Simulator）
-  * [在你的 CarPlay App 中显示内容](https://developer.Apple.com/documentation/carplay/displaying_content_in_carplay?language=objc)
-  * [兼容 iOS13 及更早 iOS 系统](https://developer.Apple.com/documentation/carplay/supporting_previous_versions_of_ios?language=objc)
-* [CarPlay｜App 编程指南](https://developer.Apple.com/carplay/documentation/CarPlay-App-Programming-Guide.pdf)
-  * 搜狗机翻版：https://github.com/teney97/iOS-CarPlay/blob/main/Content/CarPlay-App-Programming-Guide【搜狗文档翻译_译文_英译中】.pdf
-* [CarPlay｜适用车型](https://www.Apple.com.cn/ios/carplay/available-models/)
-* [CarPlay｜Apple 的 CarPlay Music App 示例](https://developer.Apple.com/documentation/carplay/integrating_carplay_with_your_music_App?language=objc)
-  * CarPlay Music 是 Apple 提供的一个音频类 CarPlay App 示例，它演示了如何在 CarPlay 中显示自定义 UI。CarPlay Music 使用 CarPlay framework 并通过实现 CPNowPlayingTemplate 和 CPListTemplate 来集成。这个示例 App 提供了一个日志界面，可以帮助你了解 CarPlay App 的生命周期和音乐控制器。
+* [CarPlay｜Введение](https://www.Apple.com.cn/ios/carplay/)
+* [CarPlay｜Главная страница документации](https://developer.Apple.com/carplay/)
+* [CarPlay｜Руководство по дизайну](https://developer.Apple.com/design/human-interface-guidelines/carplay/overview/introduction/)
+* [CarPlay｜Документация для разработчиков](https://developer.Apple.com/documentation/carplay?language=objc)
+  * [Запрос CarPlay entitlement](https://developer.Apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
+  * [Запуск и отладка CarPlay-приложения в CarPlay Simulator](https://developer.Apple.com/documentation/carplay/using_the_carplay_simulator?language=objc) (сначала нужно выполнить предыдущий шаг, иначе CarPlay Simulator не заработает и ваше приложение не появится на главном экране CarPlay. На Mac с M1 CarPlay Simulator может не работать)
+  * [Отображение контента в вашем CarPlay-приложении](https://developer.Apple.com/documentation/carplay/displaying_content_in_carplay?language=objc)
+  * [Поддержка iOS 13 и более ранних версий iOS](https://developer.Apple.com/documentation/carplay/supporting_previous_versions_of_ios?language=objc)
+* [CarPlay｜Руководство по программированию приложений](https://developer.Apple.com/carplay/documentation/CarPlay-App-Programming-Guide.pdf)
+  * Машинный перевод Sogou (с английского на китайский): https://github.com/teney97/iOS-CarPlay/blob/main/Content/CarPlay-App-Programming-Guide【搜狗文档翻译_译文_英译中】.pdf
+* [CarPlay｜Поддерживаемые модели автомобилей](https://www.Apple.com.cn/ios/carplay/available-models/)
+* [CarPlay｜Пример Apple CarPlay Music App](https://developer.Apple.com/documentation/carplay/integrating_carplay_with_your_music_App?language=objc)
+  * CarPlay Music — пример аудио-приложения для CarPlay от Apple, демонстрирующий, как отображать собственный UI в CarPlay. CarPlay Music использует CarPlay framework и интегрируется через реализацию CPNowPlayingTemplate и CPListTemplate. Пример приложения содержит экран журнала, который помогает разобраться в жизненном цикле CarPlay-приложения и в контроллере музыки.
 
 
-### 其它
+### Прочее
 
-* [苹果 iOS 13 CarPlay 详解：全新 UI 设计 + 独立 App 视图 ](https://www.sohu.com/a/336034138_120178230)
+* [Подробно о CarPlay в iOS 13 от Apple: новый дизайн UI + отдельное представление приложения ](https://www.sohu.com/a/336034138_120178230)

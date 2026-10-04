@@ -1,78 +1,78 @@
-## 常见问题解答
+## Часто задаваемые вопросы
 
-### CarPlay 连接
+### Подключение CarPlay
 
-**1. 为什么车机连接了，CarPlay 车载却没有出来？**
+**1. Почему головное устройство автомобиля подключено, а CarPlay не появляется?**
 
-* 汽车不支持 CarPlay；
-* iPhone 没有开启 Siri。在 `设置 > Siri 与搜索` 中开启 `用“嘿 Siri”唤醒`。如果没有开启 Siri 的话，iPhone 的 `设置 > 通用 ` 中也不会显示 `CarPlay 车载` 这一项。
+* Автомобиль не поддерживает CarPlay;
+* На iPhone не включён Siri. Включите `Для вызова Siri скажите «Привет, Siri»` в `Настройки > Siri и Поиск`. Если Siri не включён, пункт `CarPlay` также не отображается в `Настройки > Основные` на iPhone.
 
 ### Simulator
 
-**1. 为什么 Simulator 菜单栏 I/O > External Displays 中 CarPlay 选项是禁用状态？**
+**1. Почему в меню Simulator I/O > External Displays пункт CarPlay неактивен?**
 
-你可能还未在开发者网站申请 CarPlay 权限并将配置文件导入到工程中。
+Возможно, вы ещё не запросили разрешение (entitlement) CarPlay на сайте для разработчиков и не добавили файл профиля (provisioning profile) в проект.
 
-可以参考：[申请 CarPlay 权限](https://developer.apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
+См.: [Запрос разрешений CarPlay](https://developer.apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
 
-**2. 为什么打开 CarPlay Simulator 没有显示我的 App？**
+**2. Почему при открытии CarPlay Simulator моё приложение не отображается?**
 
-你可能是忘了添加权利文件。你需要将 Key `com.apple.developer.carplay-audio` 添加到 Entitlements.plist 中并设置 Value 为 1。
+Возможно, вы забыли добавить файл entitlements. Нужно добавить ключ `com.apple.developer.carplay-audio` в Entitlements.plist и задать значение 1.
 
 ```xml
 <key>com.apple.developer.carplay-audio</key>
 <true/>
 ```
 
-可以参考 [申请 CarPlay 权限](https://developer.apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
+См. [Запрос разрешений CarPlay](https://developer.apple.com/documentation/carplay/requesting_the_carplay_entitlements?language=objc)
 
-**3. 为什么 M1 Mac 打开 CarPlay App 直接崩溃？** 
+**3. Почему на Mac с M1 приложение CarPlay сразу падает при запуске?** 
 
-如果你是 M1 Mac，那可能无法使用 CarPlay Simulator。如果你的 Xcode 以 Rosetta 模式运行，那么启动 CarPlay App 会直接 crash。将 Simulator 也以 Rosetta 运行并不能解决问题。这个问题暂时没有解决方案。https://issueexplorer.com/issue/mapbox/mapbox-navigation-ios/3355。
+На Mac с M1 CarPlay Simulator может не работать. Если Xcode запущен в режиме Rosetta, запуск приложения CarPlay приведёт к немедленному crash. Запуск Simulator тоже через Rosetta проблему не решает. Решения у этой проблемы пока нет. https://issueexplorer.com/issue/mapbox/mapbox-navigation-ios/3355.
 
-**4. 从 “播放中” App 返回到音频源 App，页面显示异常**
+**4. При возврате из приложения «Исполняется» в приложение — источник аудио страница отображается некорректно**
 
-感觉是 Apple 的 bug，模拟器和真机都可能出现。bug 出现的步骤是：
+Похоже на баг Apple, воспроизводится как в симуляторе, так и на реальном устройстве. Шаги для воспроизведения:
 
-1. 先不要启动你的 CarPlay App
-2. 在你的 iPhone App 中播放音频
-3. 打开 CarPlay 的 “播放中” App
-4. 通过 “播放中” app 返回到你的 CarPlay App
+1. Не запускайте своё приложение CarPlay
+2. Запустите воспроизведение аудио в своём iPhone-приложении
+3. Откройте приложение CarPlay «Исполняется»
+4. Через приложение «Исполняется» вернитесь в своё приложение CarPlay
 
-可能会出现的问题：
+Возможные проблемы:
 
-* tabBarItem 重叠
-* CPListImageRowItem 本应该只显示 4 张图片，却显示了 5 张
+* tabBarItem накладываются друг на друга
+* CPListImageRowItem должен показывать только 4 изображения, но показывает 5
 
-切换 template、退后台再进入，页面恢复正常。
+После переключения template или ухода в фон и возврата страница восстанавливается.
 
-### 图片
+### Изображения
 
-**1. 为什么 CarPlay 上的图片模糊？**
+**1. Почему изображения в CarPlay размытые?**
 
-无论是本地图片还是异步图片都需要适配下 scale。
+Как для локальных, так и для асинхронно загружаемых изображений нужно учитывать scale.
 
-### 正在播放
+### Исполняется
 
-**1. rootTemplate 右上角的 “正在播放按钮” 什么时候出现？**
+**1. Когда появляется кнопка «Исполняется» в правом верхнем углу rootTemplate?**
 
-当前 App 正在播放音频时出现，点击它将 push 到 CPNowPlayingTemplate。
+Она появляется, когда текущее приложение воспроизводит аудио; нажатие на неё выполняет push в CPNowPlayingTemplate.
 
-**2. CarPlay 主界面的 “播放中（Now Playing）” app 是什么？**
+**2. Что такое приложение «Исполняется» (Now Playing) на главном экране CarPlay?**
 
-* CPNowPlayingTemplate 是个单例类，所有 CarPlay App 的 “正在播放” 界面都是使用这个单例。
-* “播放中” App 将从 nowPlayingCenter 中取数据，也就是说该 App 将显示 iPhone 上正在播放的音频信息，并将音频源 App 的 appName 显示在右上角，即使该音频源 App 不支持 CarPlay。因此，即使你的 App 暂时不支持 CarPlay，你也可以通过适配好 MPNowPlayingInfoCenter 和 MPRemoteCommandCenter 来使你的 App 支持 CarPlay ”播放中“ App。
+* CPNowPlayingTemplate — это класс-синглтон, и экран «Исполняется» всех приложений CarPlay использует именно этот синглтон.
+* Приложение «Исполняется» берёт данные из nowPlayingCenter, то есть показывает информацию об аудио, воспроизводимом на iPhone, а appName приложения — источника аудио выводится в правом верхнем углу, даже если это приложение не поддерживает CarPlay. Поэтому, даже если ваше приложение пока не поддерживает CarPlay, вы можете обеспечить его поддержку в приложении «Исполняется», корректно реализовав MPNowPlayingInfoCenter и MPRemoteCommandCenter.
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1127c309cdef4dcd90e9dfc1d1e5e144~tplv-k3u1fbpfcp-watermark.image?)
 
-* 如果 “播放中” App 的音频源 App 支持 CarPlay，那么启动 “播放中” App 就会触发音频源 App 的 CarPlay 场景连接，也就是启动音频源 CarPlay App。这就是为什么 Apple 让我们在 `- templateApplicationScene:didConnectInterfaceController:` 的时机就配置好 CPNowPlayingTemplate 的原因，而不应该在 push 到 CPNowPlayingTemplate 的时候去配置，因为 CPNowPlayingTemplate 并不一定通过主动 push 时触发，可能是通过 “播放中” App 或者 rootTemplate 右上角的 “正在播放按钮”。点击 “播放中” App 左上角的返回按钮，将返回到该音频源的 CarPlay App 的 rootTemplate。
+* Если приложение — источник аудио для «Исполняется» поддерживает CarPlay, то запуск приложения «Исполняется» инициирует подключение CarPlay-сцены этого приложения, то есть запускает его CarPlay-приложение. Именно поэтому Apple рекомендует настраивать CPNowPlayingTemplate в момент `- templateApplicationScene:didConnectInterfaceController:`, а не при push в CPNowPlayingTemplate: CPNowPlayingTemplate не обязательно открывается явным push, он может быть открыт через приложение «Исполняется» или через кнопку «Исполняется» в правом верхнем углу rootTemplate. Нажатие кнопки «назад» в левом верхнем углу приложения «Исполняется» возвращает в rootTemplate CarPlay-приложения этого источника аудио.
 
-**3. 正在播放页面中音频插图（封面）不显示**
+**3. На экране «Исполняется» не отображается обложка аудио**
 
-* 如果是显示了占位图，那可能是因为你没将有效图片设置到 nowPlayingInfo 的 MPMediaItemPropertyArtwork key 中。
-* 如果是连占位图都没有：
-  * 如果是真实环境汽车中不显示，需要在 CarPlay 设置中将 `显示专辑插图` 打开。如果设置中没有显示该选项，那可能是当前 iPhone 设置的语言和地区不支持，在 iPhone 的  `设置 > 语言和地区` 中设置。参考帖子 https://tieba.baidu.com/p/6276976841。
-  * 如果是 CarPlay Simulator，那应该没办法显示，即使按照上面的步骤操作了，这点我暂时没有依据。
+* Если отображается заглушка (placeholder), возможно, вы не задали допустимое изображение для ключа MPMediaItemPropertyArtwork в nowPlayingInfo.
+* Если нет даже заглушки:
+  * Если изображение не отображается в реальном автомобиле, нужно включить `Показывать обложки альбомов` в настройках CarPlay. Если такого пункта в настройках нет, возможно, текущие язык и регион iPhone не поддерживаются; их можно изменить в `Настройки > Язык и регион` на iPhone. Обсуждение: https://tieba.baidu.com/p/6276976841.
+  * В CarPlay Simulator обложка, по-видимому, не отображается вообще, даже если выполнить описанные выше шаги; подтверждения этому у меня пока нет.
 
 
 

@@ -1,31 +1,31 @@
-## 兼容 UIScene
+## Совместимость с UIScene
 
-在 iOS 14 及更高版本中使用 CarPlay framework 来开发 CarPlay app 必须使用 UIScene（UIScene 是 Apple 于 iOS 13 引入的，用于构建多窗口应用），因此你的工程必须从传统的 UIWindow 和 AppDelegate 向 SceneDelegate 过渡。如果你的工程已经兼容了 UIScene，那么就可以省去这步骤的工作；如果还未兼容的话，可以参考本章节中的步骤。
+Для разработки CarPlay-приложений с помощью CarPlay framework на iOS 14 и выше необходимо использовать UIScene (UIScene был представлен Apple в iOS 13 для создания многооконных приложений), поэтому ваш проект должен перейти с традиционной связки UIWindow и AppDelegate на SceneDelegate. Если ваш проект уже поддерживает UIScene, этот шаг можно пропустить; если нет — следуйте шагам из этого раздела.
 
 ![](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/201ca825e81f427e88ed74560cb1f8ae~tplv-k3u1fbpfcp-watermark.image?)
 
-### UIScene 是什么
+### Что такое UIScene
 
-在 iOS 13 之前，在功能职责上，UIApplication 负责 App 状态，UIApplicationDelegate（AppDelegate）负责 App 事件和生命周期，包括进程和 UI 的。对于单窗口的 App 来说这没有问题，但是要想开发多窗口的 iPad App 或者 Mac Catalyst App 的话，这种功能职责的划分已经不支持了。
+До iOS 13 обязанности распределялись так: UIApplication отвечал за состояние приложения, а UIApplicationDelegate (AppDelegate) — за события и жизненный цикл приложения, включая процесс и UI. Для одноокного приложения это не проблема, но для разработки многооконных приложений на iPad или Mac Catalyst такое разделение обязанностей уже не подходит.
 
-因此， Apple 于 iOS 13 引入用于构建多窗口应用的 UIScene，并对功能职责进行了拆分，将 UI 相关的状态、事件和生命周期交与 [UIWindowScene](https://developer.apple.com/documentation/uikit/uiwindowscene/) 和 [UIWindowSceneDelegate](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/)（SceneDelegate）负责，[UISceneSession](https://developer.apple.com/documentation/uikit/uiscenesession/) 负责持久化的 UI 状态。
+Поэтому в iOS 13 Apple представила UIScene для создания многооконных приложений и разделила обязанности: состояние, события и жизненный цикл, связанные с UI, перешли к [UIWindowScene](https://developer.apple.com/documentation/uikit/uiwindowscene/) и [UIWindowSceneDelegate](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/) (SceneDelegate), а [UISceneSession](https://developer.apple.com/documentation/uikit/uiscenesession/) отвечает за персистентное состояние UI.
 
 ![](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/b6ceb358854349a49eee654d4796940f~tplv-k3u1fbpfcp-watermark.image?)
 
-### 兼容 UIScene 
+### Совместимость с UIScene 
 
-因为 UIScene 只能在 iOS 13 及更高版本中使用，因此如果你的 App 最低版本支持小于 iOS 13 的话，你就不能完全使用 SceneDelegate，在 iOS 13 及更高版本中使用 AppDelegate + SceneDelegate，而在低于 iOS 13 的版本中继续只使用 AppDelegate。
+Поскольку UIScene доступен только на iOS 13 и выше, то если минимальная поддерживаемая версия вашего приложения ниже iOS 13, полностью перейти на SceneDelegate не получится: на iOS 13 и выше используется AppDelegate + SceneDelegate, а на версиях ниже iOS 13 по-прежнему только AppDelegate.
 
-#### 在 Info.plist 声明一个 UIWindowScene
+#### Объявление UIWindowScene в Info.plist
 
-Info.plist 中添加以下 key-value。一些参数说明：
+Добавьте в Info.plist следующие key-value. Пояснения к параметрам:
 
-* Enable Multiple Windows，需要设置为 NO，否则你的 iPad App 将支持多窗口（如果你的 iPhone 和 iPad 工程放在同一工程下的话）。
-* Application Session Role，一个数组，配置你的 App 场景，每一项有 4 个参数：
-  * Class Name：Scene 类型
-  * Configuration Name：当前配置的名字
-  * Delegate Class Name：与哪个 Scene 代理类关联
-  * StoryBoard name：这个 Scene 使用的哪个 storyBoard 如果有的话
+* Enable Multiple Windows нужно установить в NO, иначе ваше iPad-приложение будет поддерживать несколько окон (если проекты для iPhone и iPad находятся в одном проекте).
+* Application Session Role — массив, в котором настраиваются сцены вашего приложения; у каждого элемента 4 параметра:
+  * Class Name: тип Scene
+  * Configuration Name: имя текущей конфигурации
+  * Delegate Class Name: с каким классом-делегатом Scene связана конфигурация
+  * StoryBoard name: какой storyBoard использует эта Scene, если он есть
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/50a9bf67131049c297b58ef719e18f36~tplv-k3u1fbpfcp-watermark.image?)
 
@@ -57,13 +57,13 @@ Info.plist 中添加以下 key-value。一些参数说明：
 
 #### Project
 
-**Targets > General > Deployment Info > Supports multiple windows** 取消勾选。该选项选中状态会影响 Info.plist 中 Enable Multiple Windows 的值。
+**Targets > General > Deployment Info > Supports multiple windows** — снимите галочку. Состояние этой опции влияет на значение Enable Multiple Windows в Info.plist.
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/98192ea75aa84ed6b0dda12f6dc95bd7~tplv-k3u1fbpfcp-watermark.image?)
 
-#### AppDelegate 改动
+#### Изменения в AppDelegate
 
-由于类功能职责的变化，一些原本在 AppDelegate API 中的实现需要迁移到 SceneDelegate API 中。
+Из-за изменения обязанностей классов часть реализаций, которые раньше находились в API AppDelegate, нужно перенести в API SceneDelegate.
 
 ![](https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/840edc05115e4d0a948c7d713437ea40~tplv-k3u1fbpfcp-watermark.image?)
 
@@ -82,7 +82,7 @@ Info.plist 中添加以下 key-value。一些参数说明：
     ...
     if (@available(iOS 13.0, *)) {} else {
         // 1. create window
-        // 2. do something after window created。需要注意原先在 window created 之后才执行的代码，也要兼容 iOS 13
+        // 2. do something after window created. Обратите внимание: код, который раньше выполнялся только после создания window, тоже нужно сделать совместимым с iOS 13
     }
     ...
     return YES;
@@ -91,22 +91,22 @@ Info.plist 中添加以下 key-value。一些参数说明：
 @end
 ```
 
-以下方法选择性实现。
+Следующие методы реализуйте по необходимости.
 
 ```swift
 @available(iOS 13, *)
 extension AppDelegate {
 
     /*
-     1.如果没有在 app 的 Info.plist 文件中包含 scene 的配置数据，或者要动态更改场景配置数据，需要实现此方法。UIKit 会在创建新 scene 前调用此方法。
-     2.方法会返回一个 UISceneConfiguration 对 象，其中包含场景详细信息，包括要创建的场景类型，用于管理场景的委托对象以及包含要显示的初始视图控制器的情节提要。 如果未实现此方法，则必须在应用程序的 Info.plist 文件中提供场景配置数据。
+     1. Если в файле Info.plist приложения нет данных конфигурации сцены или конфигурацию сцены нужно менять динамически, необходимо реализовать этот метод. UIKit вызывает его перед созданием новой сцены.
+     2. Метод возвращает объект UISceneConfiguration, содержащий сведения о сцене: тип создаваемой сцены, объект-делегат для управления сценой и storyboard с начальным view controller для отображения. Если метод не реализован, данные конфигурации сцены должны быть указаны в Info.plist приложения.
 
-     总结下：默认在 Info.plist 中进行了配置，不用实现该方法也没有关系。如果没有配置就需要实现这个方法并返回一个 UISceneConfiguration 对象。
-     配置参数中 Application Session Role 是个数组，每一项有三个参数:
-         1) Configuration Name:   当前配置的名字;
-         2) Delegate Class Name:  与哪个 Scene 代理对象关联;
-         3) StoryBoard name: 这个 Scene 使用的哪个 storyboard。
-     注意：代理方法中调用的是配置名为 Default Configuration 的 Scene，则系统就会自动去调用 SceneDelegate 这个类。这样 SceneDelegate 和 AppDelegate 产生了关联。
+     Итог: по умолчанию конфигурация задана в Info.plist, поэтому этот метод можно не реализовывать. Если конфигурации нет, нужно реализовать метод и вернуть объект UISceneConfiguration.
+     В параметрах конфигурации Application Session Role — это массив, у каждого элемента три параметра:
+         1) Configuration Name:   имя текущей конфигурации;
+         2) Delegate Class Name:  с каким объектом-делегатом Scene связана конфигурация;
+         3) StoryBoard name: какой storyboard использует эта Scene.
+     Примечание: если в методе делегата вызывается Scene с именем конфигурации Default Configuration, система автоматически обращается к классу SceneDelegate. Так SceneDelegate и AppDelegate оказываются связаны.
      */
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         // Called when a new scene session is being created.
@@ -114,7 +114,7 @@ extension AppDelegate {
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
-    // 在分屏中关闭其中一个或多个 scene 时候回调用
+    // Вызывается, когда в режиме разделённого экрана закрывается одна или несколько scene
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
         // Called when the user discards a scene session.
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
@@ -179,7 +179,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 ```
 
-#### 给 UIScene 添加扩展获取场景
+#### Расширение UIScene для получения сцен
 
 ```swift
 import UIKit
@@ -204,11 +204,11 @@ extension UIScene {
 
 #### UIWindow
 
-使用 UIScene 后，UI 层级结构发生了一些变化，原本的 UIScreen 和 UIWindow 层中加入了一层 UIWindowScene。
+После перехода на UIScene иерархия UI изменилась: между прежними слоями UIScreen и UIWindow добавился слой UIWindowScene.
 
 ![](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/af3a8af87c2a4c3db1d36a68e5a80626~tplv-k3u1fbpfcp-watermark.image?)
 
-而 UIWindow 也新增了一个 windowScene 属性，以及 windowScene 构造器。一个 UIWindow 必须使用 windowScene 进行初始化或者设置 windowScene 属性才能显示在屏幕上。
+У UIWindow также появились свойство windowScene и инициализатор с windowScene. Чтобы UIWindow отображался на экране, его необходимо либо инициализировать с windowScene, либо установить свойство windowScene.
 
 ```objectivec
 // instantiate a UIWindow already associated with a given UIWindowScene instance, with matching frame & interface orientations.
@@ -219,12 +219,12 @@ extension UIScene {
 @property (nullable, nonatomic, weak) UIWindowScene *windowScene API_AVAILABLE(ios(13.0));
 ```
 
-#### 首次启动隐私弹窗适配
+#### Адаптация окна о конфиденциальности при первом запуске
 
-如果你的首次启动隐私弹窗是通过在 AppDelegate 的 init 方法中 hook `- application:didFinishLaunchingWithOptions:` 方法进行拦截的话，也需要 hook `- scene:willConnectToSession:options:`，然后可以将隐私弹窗弹出的时机放在这里。`- scene:willConnectToSession:options:` 调用时机将在 `- application:didFinishLaunchingWithOptions:` return 之后。
+Если ваше окно о конфиденциальности при первом запуске перехватывается через hook метода `- application:didFinishLaunchingWithOptions:` в методе init класса AppDelegate, то нужно также сделать hook метода `- scene:willConnectToSession:options:` и перенести момент показа окна о конфиденциальности туда. Метод `- scene:willConnectToSession:options:` вызывается после возврата из `- application:didFinishLaunchingWithOptions:`.
 
-### 相关资料
+### Дополнительные материалы
 
 * [WWDC19｜Introducing Multiple Windows on iPad](https://developer.apple.com/videos/play/wwdc2019/212)
-    * [WWDC19 内参｜iPad 上的多窗口](https://xiaozhuanlan.com/topic/0342159876)
+    * [WWDC19 Insider｜Мультиоконность на iPad](https://xiaozhuanlan.com/topic/0342159876)
 * [Apple｜Specifying the Scenes Your App Supports](https://developer.apple.com/documentation/uikit/app_and_environment/scenes/specifying_the_scenes_your_app_supports?language=objc)

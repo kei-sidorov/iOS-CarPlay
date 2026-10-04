@@ -1,52 +1,52 @@
-## [译] 向 Swift Radio 添加 CarPlay 支持
+## [Перевод] Добавляем поддержку CarPlay в Swift Radio
 
-原文：[Fethi El Hassasna｜Add CarPlay support to Swift Radio](https://blog.fethica.com/add-carplay-support-to-swiftradio/#)
+Оригинал: [Fethi El Hassasna｜Add CarPlay support to Swift Radio](https://blog.fethica.com/add-carplay-support-to-swiftradio/#)
 
-在本教程中，我们将看到如何向开源的广播 App [SwiftRadio](https://github.com/analogcode/Swift-Radio-Pro) 添加 **CarPlay** 支持，并使用模拟器对其进行测试。
+В этом руководстве мы посмотрим, как добавить поддержку **CarPlay** в open-source радиоприложение [SwiftRadio](https://github.com/analogcode/Swift-Radio-Pro) и протестировать её в симуляторе.
 
-### 设置项目
+### Настройка проекта
 
-首先让我们从克隆项目开始，或者直接从 [GitHub](https://github.com/analogcode/Swift-Radio-Pro) 下载：
+Для начала склонируем проект или просто скачаем его с [GitHub](https://github.com/analogcode/Swift-Radio-Pro):
 
 ```
 git clone https://github.com/analogcode/Swift-Radio-Pro
 ```
 
-使用模拟器运行项目后，我们先检查下 **CarPlay** 菜单是不是位于以下位置：**Hardware (I/O) > External Displays > CarPlay**：
+После запуска проекта в симуляторе проверим, есть ли меню **CarPlay** по следующему пути: **Hardware (I/O) > External Displays > CarPlay**:
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107135013.png)
 
-如果找不到 CarPlay 菜单，只需打开终端并运行以下命令：
+Если меню CarPlay не найдено, откройте терминал и выполните следующую команду:
 
 ```
 defaults write com.apple.iphonesimulator CarPlay -bool YES
 ```
 
-> [注] 现在应该是不需要这一步了。
+> [Примечание] Сейчас этот шаг, по-видимому, уже не нужен.
 
-现在我们需要向工程添加一个权利文件（.entitlement），向其添加条目 `com.apple.developer.playable-content` 并设置值为 `Boolean/YES` 以支持 **CarPlay**。
+Теперь нужно добавить в проект файл entitlements (.entitlement), добавить в него ключ `com.apple.developer.playable-content` со значением `Boolean/YES`, чтобы включить поддержку **CarPlay**.
 
-要自动生成文件，我们只需在工程 **target > capabilities** 中开启 **PushNotification** 然后再关闭即可。
+Чтобы файл создался автоматически, достаточно в **target > capabilities** проекта включить **PushNotification**, а затем снова выключить.
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107140228.png)
 
-> [注]：现在我们可以在 **target > Signing & Capabilities** 中随便添加一个 Capability，就自动生成 .entitlements 文件，然后再将添加的 Capability 删除即可。
+> [Примечание]: сейчас достаточно в **target > Signing & Capabilities** добавить любой Capability — файл .entitlements создастся автоматически — а затем удалить добавленный Capability.
 >
 > ![](https://gitee.com/junteng/images/raw/master/img/20220107140626.png)
 >
 > ![](https://gitee.com/junteng/images/raw/master/img/20220107141132.png)
 
-该 `SwiftRadio.entitlements` 文件应如下所示：
+Файл `SwiftRadio.entitlements` должен выглядеть так:
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107142032.png)
 
-当我们再次运行该 App 时，我们应该会看到我们的 **CarPlay** App：
+При повторном запуске приложения мы должны увидеть наше **CarPlay**-приложение:
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107142138.png)
 
-接下来，让我们回到项目并开始添加一些代码。
+Теперь вернёмся к проекту и начнём добавлять код.
 
-首先，我们需要在 **AppDelegate** 类中导入 **MediaPlayer** framework，并添加一个新属性 `playableContentManager`。
+Сначала нужно импортировать framework **MediaPlayer** в классе **AppDelegate** и добавить новое свойство `playableContentManager`.
 
 ```swift
 // AppDelegate.swift
@@ -64,9 +64,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // ...
 ```
 
-我们为 `AppDelegate` 创建一个 CarPlay 分类来分离 CarPlay 逻辑，将其命名为 `AppDelegate+CarPlay.swift`。
+Чтобы отделить логику CarPlay, создадим для `AppDelegate` категорию (extension) в файле `AppDelegate+CarPlay.swift`.
 
-首先，我们添加一个 `setupCarPlay` 方法来初始化 `playableContentManager` 属性，同时设置其 `delagate` 和 `dataSource` 为 `self (AppDelagate)`:
+Сначала добавим метод `setupCarPlay`, который инициализирует свойство `playableContentManager` и устанавливает его `delagate` и `dataSource` равными `self (AppDelagate)`:
 
 ```swift
 // AppDelegate+CarPlay.swift
@@ -85,7 +85,7 @@ extension AppDelegate {
 }
 ```
 
-接下来，我们使用 extension 实现 `delagate` 和  `dataSource` 协议并添加所需的实现：
+Далее с помощью extension реализуем протоколы `delagate` и `dataSource` и добавим обязательные методы:
 
 ```swift
 // AppDelegate+CarPlay.swift
@@ -125,7 +125,7 @@ extension AppDelegate: MPPlayableContentDataSource {
 }
 ```
 
-为了获取 `datasource` 需要的数据（我们例子中广播电台的列表），我们添加一个类，并将其命名为 `CarPlayPlaylist`。在这个类中，我们增加一个属性来保存电台数组，以及一个从我们 `DataManager` 类中加载数据的方法。
+Чтобы получить данные для `datasource` (в нашем примере это список радиостанций), добавим класс `CarPlayPlaylist`. В этом классе будет свойство для хранения массива станций и метод, загружающий данные из нашего класса `DataManager`.
 
 ```swift
 // CarPlayPlaylist.swift
@@ -161,7 +161,7 @@ class CarPlayPlaylist {
 }
 ```
 
-现在，在我们的 `AppDelegate` 中添加一个 `carPlayPlaylist` 属性：
+Теперь добавим в `AppDelegate` свойство `carPlayPlaylist`:
 
 ```swift
 // AppDelegate.swift
@@ -180,11 +180,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 // ...
 ```
 
-在 `datasource` 中我们需要创建一个 tab 来展示电台列表，为此我们需要将 `UIBrowsableContentSupportsSectionedBrowsing` `Boolean/YES` 值添加到 `info.plist` 中。
+В `datasource` нам нужно создать tab для отображения списка станций. Для этого необходимо добавить в `info.plist` ключ `UIBrowsableContentSupportsSectionedBrowsing` со значением `Boolean/YES`.
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107150450.png)
 
-现在，让我们在 `datasource` 中添加所需的数据，对于 `numberOfChildItems`，tabs 的数量是 1，items 的数量是 `CarPlayPlayList stations` `count`：
+Теперь добавим в `datasource` нужные данные: для `numberOfChildItems` количество tabs равно 1, а количество items равно `count` у `CarPlayPlayList stations`:
 
 ```swift
 // AppDelegate+CarPlay.swift
@@ -197,7 +197,7 @@ func numberOfChildItems(at indexPath: IndexPath) -> Int {
 }
 ```
 
-在 `contentItem(at indexPath: IndexPath) -> MPContentItem?` 方法中，我们为每个 section（tab 和 list）创建一个 `MPContentItem` 类型的 item。为 tab 添加：
+В методе `contentItem(at indexPath: IndexPath) -> MPContentItem?` для каждой секции (tab и list) мы создаём item типа `MPContentItem`. Для tab добавим:
 
 ```swift
 if indexPath.count == 1 {
@@ -215,9 +215,9 @@ if indexPath.count == 1 {
 }
 ```
 
-> 你可以从[这里](https://blog.fethica.com/assets/zips/carPlayTabIcon.zip)下载 carPlayTab 图标，并将它们添加到项目的 images .xcassets 中。
+> Иконки carPlayTab можно скачать [здесь](https://blog.fethica.com/assets/zips/carPlayTabIcon.zip) и добавить в images .xcassets проекта.
 
-对于电台列表：
+Для списка станций:
 
 ```swift
 if indexPath.count == 1 {
@@ -256,7 +256,7 @@ if indexPath.count == 1 {
 }
 ```
 
-在 `beginLoadingChildItems` delegate 方法中，我们调用了 carPlayPlaylist 加载方法。
+В delegate-методе `beginLoadingChildItems` мы вызываем метод загрузки у carPlayPlaylist.
 
 ```swift
 func beginLoadingChildItems(at indexPath: IndexPath, completionHandler: @escaping (Error?) -> Void) {
@@ -266,7 +266,7 @@ func beginLoadingChildItems(at indexPath: IndexPath, completionHandler: @escapin
 }
 ```
 
-最后，不要忘记调用 AppDelegate 中的 `setupCarPlay` 方法。
+Наконец, не забудьте вызвать метод `setupCarPlay` в AppDelegate.
 
 ```swift
 // AppDelegate.swift
@@ -281,13 +281,13 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
-让我们再次运行我们的 App，我们应该会在 CarPlay 显示屏中看到这个列表：
+Запустим приложение ещё раз — на дисплее CarPlay мы должны увидеть этот список:
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107160820.png)
 
-### 处理播放
+### Обработка воспроизведения
 
-让我们先创建一个新文件，并给 StationsViewController 类扩展一个用于播放电台的方法，命名为 `selectFromCarPlay:`：
+Сначала создадим новый файл и расширим класс StationsViewController методом для воспроизведения станции, назвав его `selectFromCarPlay:`:
 
 ```swift
 // StationsViewController+CarPlay.swift
@@ -302,7 +302,7 @@ extension StationsViewController {
 }
 ```
 
-在 delegate 方法 `playableContentManager` 中，我们使用 indexPath 获取选中的 station，调用 stationViewController 的 `selectFromCarPlay:` 方法并将 station 传入：
+В delegate-методе `playableContentManager` мы по indexPath получаем выбранную station, вызываем метод `selectFromCarPlay:` у stationViewController и передаём в него station:
 
 ```swift
 // AppDelegate+CarPlay.swift
@@ -320,15 +320,15 @@ func playableContentManager(_ contentManager: MPPlayableContentManager, initiate
 }
 ```
 
-如果我们再次运行我们的 App，我们将能够直接在 CarPlay 中播放所选电台。
+Если снова запустить приложение, мы сможем воспроизводить выбранную станцию прямо из CarPlay.
 
-> 如果你在选择电台时遇到 **out of range** 错误，只需重新启动 **CarPlay** simulator app，这将重新加载播放列表并解决问题。
+> Если при выборе станции вы получаете ошибку **out of range**, просто перезапустите приложение-симулятор **CarPlay** — плейлист перезагрузится, и проблема исчезнет.
 
-### 在模拟器中显示 “Now Playing” 界面的解决方案
+### Обходное решение для отображения экрана «Now Playing» в симуляторе
 
-这是一个能够在模拟器上看到 `NowPlaying` 界面的解决方案（这在实际的设备上是不需要的），[source](https://stackoverflow.com/questions/52818170/handling-playback-events-in-carplay-with-mpnowplayinginfocenter)。
+Вот обходное решение, позволяющее увидеть экран `NowPlaying` в симуляторе (на реальном устройстве оно не требуется), [источник](https://stackoverflow.com/questions/52818170/handling-playback-events-in-carplay-with-mpnowplayinginfocenter).
 
-让我们更新 delegate 方法，如下所示:
+Обновим delegate-метод следующим образом:
 
 ```swift
 func playableContentManager(_ contentManager: MPPlayableContentManager, initiatePlaybackOfContentItemAt indexPath: IndexPath, completionHandler: @escaping (Error?) -> Void) {
@@ -350,25 +350,25 @@ func playableContentManager(_ contentManager: MPPlayableContentManager, initiate
 }
 ```
 
-如果我们再次运行我们的 App，我们将在 **CarPlay** 上得到 **NowPlaying** 界面:
+Если снова запустить приложение, мы увидим экран **NowPlaying** в **CarPlay**:
 
 ![](https://gitee.com/junteng/images/raw/master/img/20220107163558.png)
 
-> 你会注意到播放按钮与播放状态不同步，它会在第一次启动时显示为暂停状态，因为我们已经使用此代码禁用了初始远程事件。
+> Вы заметите, что кнопка воспроизведения не синхронизирована с состоянием воспроизведения: при первом запуске она показывается в состоянии паузы, потому что этим кодом мы отключили начальные remote-события.
 
-### 在实际设备上测试
+### Тестирование на реальном устройстве
 
-为了在实际设备上运行该 App 或将其发布到 App Store，你需要使用 [此表单](https://developer.apple.com/contact/carplay/) 向 Apple 请求 **CarPlay** entitlement。
+Чтобы запустить приложение на реальном устройстве или опубликовать его в App Store, нужно запросить у Apple entitlement для **CarPlay** с помощью [этой формы](https://developer.apple.com/contact/carplay/).
 
-感谢 [@urayoanm](https://github.com/urayoanm) 在这个 Github [issue](https://github.com/analogcode/Swift-Radio-Pro/issues/104#issuecomment-433407949) 上分享他的的经验。
+Спасибо [@urayoanm](https://github.com/urayoanm) за то, что поделился своим опытом в этом GitHub [issue](https://github.com/analogcode/Swift-Radio-Pro/issues/104#issuecomment-433407949).
 
-一旦你的请求获得批准，你将收到一封电子邮件，说明 **CarPlay** entitlement 已添加到你的 account，并且你将能够为你的 App 生成带有 **CarPlay** entitlement 的显式配置文件。
+Как только ваш запрос будет одобрен, вы получите письмо о том, что entitlement для **CarPlay** добавлен в ваш account, и сможете сгенерировать для своего приложения explicit provisioning profile с entitlement для **CarPlay**.
 
-### 结尾
+### Заключение
 
-所有这些代码都已推送到 **SwiftRadio** repo 上的 **CarPlay** [branch](https://github.com/analogcode/Swift-Radio-Pro/tree/carplay)。
+Весь этот код отправлен в **CarPlay** [branch](https://github.com/analogcode/Swift-Radio-Pro/tree/carplay) репозитория **SwiftRadio**.
 
-关于 **CarPlay** 的更多信息：
+Больше информации о **CarPlay**:
 
 - [CarPlay Audio and Navigation Apps - WWDC 2018](https://developer.apple.com/videos/play/wwdc2018/213/)
 - [Enabling Your App for CarPlay - WWDC 2017](https://developer.apple.com/videos/play/wwdc2017/719/)
